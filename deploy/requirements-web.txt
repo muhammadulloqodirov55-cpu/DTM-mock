@@ -1,0 +1,7 @@
+# DTM Mock — FAQAT onlayn imtihon platformasi uchun (serverga shu yetadi).
+# OpenCV/NumPy/Telegram shart emas — ular qog'oz-varaqa skaneri va bot uchun
+# (kerak bo'lsa asosiy requirements.txt ni o'rnating).
+Flask>=3.0
+waitress>=3
+openpyxl>=3.1
+fpdf2>=2.7

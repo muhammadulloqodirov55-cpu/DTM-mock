@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Javoblar — {{ meta.title }}{% endblock %}
+{% block body %}
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div>
+      <h2 style="margin-bottom:2px">Javoblar — {{ meta.title }}</h2>
+      <span class="muted">Har yo'nalishning har varianti uchun to'g'ri javoblar <b>har fanga alohida</b> kiritiladi.
+      Belgilar: A/B/C/D, <code>*</code> — bekor qilingan savol (hammaga ball), <code>-</code> — hisoblanmaydi.</span>
+    </div>
+    <a class="btn sec" href="{{ url_for('exam_manage', eid=meta.id) }}">← Tuzilish sahifasi</a>
+  </div>
+</div>
+
+{% if not meta.directions %}
+<div class="card"><p class="muted" style="margin:0">Avval <a href="{{ url_for('exam_manage', eid=meta.id) }}">Tuzilish sahifasida</a> yo'nalish qo'shing.</p></div>
+{% endif %}
+
+{% for did, d in meta.directions|dictsort %}
+<div class="card" style="border-left:4px solid var(--ink)">
+  <h2>{{ loop.index }}. {{ d.name }} <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">(kod: {{ d.code }})</span></h2>
+  {% if not d.variants %}
+  <p class="hint" style="color:var(--warn);margin-bottom:0">Bu yo'nalishga hali PDF yuklanmagan —
+  avval <a href="{{ url_for('exam_manage', eid=meta.id) }}">Tuzilish sahifasida</a> variant PDF'ini yuklang.</p>
+  {% endif %}
+  {% for v, info in d.variants|dictsort %}
+  {% set kp = key_parts.get(did ~ ':' ~ v, {}) %}
+  <div style="border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:12px">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+      <b>Variant {{ v|int }}</b>
+      {% if info.key and info.key|length == 90 %}<span class="tag ok">javoblar to'liq</span>
+      {% else %}<span class="tag flag">javoblar kiritilmagan</span>{% endif %}
+    </div>
+    <form method="post">
+      <input type="hidden" name="did" value="{{ did }}"><input type="hidden" name="variant" value="{{ v }}">
+      <div class="row">
+        {% for slot, a, b, size in sizes %}
+        <div style="{% if size == 30 %}flex:1;min-width:260px{% endif %}">
+          <label>{{ d.subjects[slot] }} · {{ a }}–{{ b }} ({{ size }} ta{% if slot in ('m1','m2','m3') %}, majburiy{% elif slot == 'fan1' %}, asosiy 3.1{% else %}, asosiy 2.1{% endif %})</label>
+          <input type="text" name="key_{{ slot }}" value="{{ kp.get(slot, '') }}"
+                 placeholder="{{ 'A' * (4 if size == 10 else 6) }}..." required
+                 style="width:{% if size == 10 %}150px{% else %}100%{% endif %};font-family:monospace;letter-spacing:2px;text-transform:uppercase">
+        </div>
+        {% endfor %}
+        <div><button class="btn" type="submit">Saqlash</button></div>
+      </div>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+{% endblock %}

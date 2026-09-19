@@ -1,0 +1,27 @@
+{
+ "id": "4327GG",
+ "title": "Apelsin",
+ "duration_min": 180,
+ "scheduled_at": "",
+ "state": "draft",
+ "created_at": "2026-09-19 10:19",
+ "directions": {
+  "1": {
+   "name": "Matematika – Matematika",
+   "subjects": {
+    "m1": "Ona tili",
+    "m2": "Matematika",
+    "m3": "O'zbekiston tarixi",
+    "fan1": "Matematika",
+    "fan2": "Matematika"
+   },
+   "code": "GDA7UF",
+   "variants": {
+    "01": {
+     "pdf": "d1_v01.pdf",
+     "key": ""
+    }
+   }
+  }
+ }
+}

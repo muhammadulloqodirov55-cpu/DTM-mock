@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>To'xtatilgan — {{ meta.title }}</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#8f1710;color:#fff;
+     min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.in{max-width:520px}
+.t{font-size:11px;letter-spacing:3px;color:#ffb4ac;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+h2{margin:0 0 12px;font-size:30px}
+p{font-size:15px;line-height:1.65;color:#ffd9d5;margin:0 0 8px}
+b{color:#fff}
+.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;
+      margin:20px auto 0;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="in">
+  <div class="t">DTM Mock · Nazorat</div>
+  <h2>Imtihon to'xtatilgan</h2>
+  <p><b>{{ att.student_name }}</b> ({{ att.klass }}) — imtihon muhitidan chiqib ketish qayd etilgan
+  ({{ att.cheat_count }} marta). Vaqtingiz <b>pauzada</b>, javoblaringiz saqlangan.</p>
+  <p>Admin «Yana imkon berish»ni bossa, imtihon shu joyidan avtomatik davom etadi.</p>
+  <div class="spin"></div>
+</div>
+<script>
+"use strict";
+setInterval(async () => {
+  try {
+    const r = await fetch({{ url_for('exam_status', eid=att.exam_id, aid=att.id)|tojson }});
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.submitted) { location.href = {{ url_for('exam_result', eid=att.exam_id, aid=att.id)|tojson }}; return; }
+    if (!d.blocked) location.href = {{ url_for('exam_take', eid=att.exam_id, aid=att.id)|tojson }};
+  } catch (e) {}
+}, 4000);
+</script>
+</body>
+</html>

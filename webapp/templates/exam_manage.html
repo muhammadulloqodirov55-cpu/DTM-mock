@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block body %}
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div style="flex:1;min-width:280px">
+      <h2 style="margin-bottom:2px">{{ meta.title }}</h2>
+      <span class="muted">{% if meta.scheduled_at %}O'tkazish vaqti: <b style="color:var(--ink)">{{ meta.scheduled_at }}</b> · {% endif %}
+        Davomiyligi: {{ meta.duration_min }} daqiqa · Yo'nalishlar: {{ meta.directions|length }} ta</span>
+      <p style="margin:14px 0 0">
+        {% if meta.state == 'open' %}<span class="tag ok">ochiq — o'quvchilar kirishi mumkin</span>
+        {% elif meta.state == 'closed' %}<span class="tag nokey">yakunlangan</span>
+        {% else %}<span class="tag flag">qoralama — hali ochilmagan</span>{% endif %}
+        &nbsp;
+        {% if meta.state != 'open' %}
+        <form method="post" style="display:inline"><input type="hidden" name="action" value="state"><input type="hidden" name="state" value="open"><button class="btn">Ochish</button></form>
+        {% endif %}
+        {% if meta.state == 'open' %}
+        <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="state"><input type="hidden" name="state" value="closed"><button class="btn sec">Imtihonni yakunlash</button></form>
+        {% endif %}
+        <a class="btn sec" href="{{ url_for('exam_answers', eid=meta.id) }}">Javoblar sahifasi →</a>
+        <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="delete_exam"><button class="btn danger">O'chirish</button></form>
+      </p>
+    </div>
+  </div>
+  <form method="post" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+    <input type="hidden" name="action" value="settings">
+    <div class="row">
+      <div style="flex:1;min-width:240px"><label>Imtihon nomi</label><input type="text" name="title" value="{{ meta.title }}" required style="width:100%"></div>
+      <div><label>O'tkazish vaqti</label><input type="text" name="scheduled_at" value="{{ meta.scheduled_at }}" placeholder="Shanba, 09:00" style="width:160px"></div>
+      <div><label>Davomiyligi (daqiqa)</label><input type="number" name="duration" value="{{ meta.duration_min }}" min="5" max="600" style="width:110px"></div>
+      <div><button class="btn sec" type="submit">Saqlash</button></div>
+    </div>
+  </form>
+</div>
+
+{% set blocked_atts = attempts|selectattr('blocked')|list %}
+{% if meta.state == 'open' and blocked_atts %}
+<div class="card" style="border:1.5px solid var(--err)">
+  <h2 style="color:var(--err)">⚑ Firib qilganlar — ruxsat kutmoqda ({{ blocked_atts|length }})</h2>
+  <p class="hint">O'quvchi imtihon muhitidan chiqib ketgan: imtihoni to'xtatilgan, <b>vaqti pauzada</b>.
+  «Yana imkon berish» bosilsa, qolgan vaqti bilan shu joyidan davom etadi.</p>
+  <table>
+    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Necha marta</th><th>Belgilangan</th><th></th></tr></thead>
+    <tbody>
+    {% for a in blocked_atts %}
+      <tr>
+        <td><b>{{ a.student_name }}</b></td>
+        <td>{{ a.klass or '—' }}</td>
+        <td>{{ a.direction_name or '—' }}</td>
+        <td><span class="tag nokey">{{ a.cheat_count }} marta</span></td>
+        <td>{{ a.answers|length }}/90</td>
+        <td><form method="post" style="display:inline"><input type="hidden" name="action" value="resume"><input type="hidden" name="aid" value="{{ a.id }}"><button class="btn">Yana imkon berish</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Yo'nalishlar ({{ meta.directions|length }})</h2>
+  <p class="hint">Chizmadagi har bir qator — bitta yo'nalish: asosiy juftlik (fan 1 — 3.1, fan 2 — 2.1) +
+  majburiy 3 fan (1.1 balldan) + <b>o'z kirish kodi</b>. PDF shu yerda yuklanadi, javob kalitlari esa
+  <a href="{{ url_for('exam_answers', eid=meta.id) }}">Javoblar sahifasida</a> har fanga alohida kiritiladi.</p>
+
+  {% for did, d in meta.directions|dictsort %}
+  <div style="border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:8px;padding:16px 18px;margin-bottom:14px">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0;border:0;padding:0">{{ loop.index }}. {{ d.name }}</h2>
+      <div class="row" style="align-items:center;gap:10px">
+        <span style="background:var(--ink);color:#fff;border-radius:7px;padding:7px 16px;font-weight:800;letter-spacing:3px;font-size:16px">{{ d.code }}</span>
+        <button class="btn sec" type="button" onclick="copyTxt(this, '{{ d.code }}')">Kodni nusxalash</button>
+        <form method="post" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="delete_direction"><input type="hidden" name="did" value="{{ did }}"><button class="btn danger">O'chirish</button></form>
+      </div>
+    </div>
+    <form method="post">
+      <input type="hidden" name="action" value="update_direction"><input type="hidden" name="did" value="{{ did }}">
+      <div class="row" style="margin-bottom:12px">
+        {% for slot, a, b, pts in subject_slots %}
+        <div>
+          <label>{{ a }}–{{ b }} ({{ pts }})</label>
+          <select name="subject_{{ slot }}">
+            {% if d.subjects[slot] not in subject_choices %}<option value="{{ d.subjects[slot] }}" selected>{{ d.subjects[slot] }}</option>{% endif %}
+            {% for f in subject_choices %}<option value="{{ f }}" {% if d.subjects[slot] == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        <div><button class="btn sec" type="submit">Fanlarni yangilash</button></div>
+      </div>
+    </form>
+
+    {% if d.variants %}
+    <table style="margin-bottom:12px">
+      <thead><tr><th>Variant</th><th>PDF</th><th>Javoblar holati</th><th></th></tr></thead>
+      <tbody>
+      {% for v, info in d.variants|dictsort %}
+        <tr>
+          <td><b>{{ v|int }}</b></td>
+          <td><a href="{{ url_for('exam_admin_pdf', eid=meta.id, did=did, variant=v) }}" target="_blank">{{ info.pdf }}</a></td>
+          <td>{% if info.key and info.key|length == 90 %}<span class="tag ok">kiritilgan</span>
+              {% else %}<a class="tag flag" style="text-decoration:none" href="{{ url_for('exam_answers', eid=meta.id) }}">kiritilmagan — Javoblar sahifasiga o'ting</a>{% endif %}</td>
+          <td><form method="post" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="delete_variant"><input type="hidden" name="did" value="{{ did }}"><input type="hidden" name="variant" value="{{ v }}"><button class="btn danger">O'chirish</button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="pdf"><input type="hidden" name="did" value="{{ did }}">
+      <div class="row">
+        <div><label>Variant</label>
+          <select name="variant">{% for v in range(1, 9) %}<option value="{{ v }}">{{ v }}</option>{% endfor %}</select></div>
+        <div><label>Savollar kitobchasi (PDF)</label><input type="file" name="pdf" accept="application/pdf" required></div>
+        <div><button class="btn" type="submit">PDF yuklash</button></div>
+      </div>
+    </form>
+  </div>
+  {% endfor %}
+
+  <div style="border:1.5px dashed var(--line);border-radius:8px;padding:16px 18px">
+    <h2 style="border:0;padding:0;margin-bottom:10px">+ Yangi yo'nalish qo'shish</h2>
+    <form method="post">
+      <input type="hidden" name="action" value="add_direction">
+      <div class="row" style="margin-bottom:12px">
+        <div>
+          <label>Tayyor DTM juftligi (fan 1 + fan 2 ni to'ldiradi)</label>
+          <select style="min-width:340px" onchange="if(this.value){var p=this.value.split('|');document.getElementById('n_fan1').value=p[0];document.getElementById('n_fan2').value=p[1];}">
+            <option value="">— qo'lda tanlash —</option>
+            {% for f1, f2, note in pair_presets %}<option value="{{ f1 }}|{{ f2 }}">{{ f1 }} + {{ f2 }} ({{ note }})</option>{% endfor %}
+          </select>
+        </div>
+        <div><label>Kirish kodi (ixtiyoriy, masalan AB101010)</label><input type="text" name="code" maxlength="10" placeholder="avtomatik" style="width:150px;text-transform:uppercase;letter-spacing:2px"></div>
+      </div>
+      <div class="row">
+        {% for slot, a, b, pts in subject_slots %}
+        <div>
+          <label>{{ a }}–{{ b }} ({{ pts }})</label>
+          <select name="subject_{{ slot }}" id="n_{{ slot }}">
+            {% for f in subject_choices %}<option value="{{ f }}" {% if default_subjects[slot] == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        <div><button class="btn" type="submit">Qo'shish</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <h2 style="margin:0">Natijalar ({{ attempts|selectattr('submitted')|list|length }} yakunlangan / {{ attempts|length }} urinish)</h2>
+    <div>
+      {% if attempts %}
+      <a class="btn sec" href="{{ url_for('exam_export', eid=meta.id) }}">Excel</a>
+      <a class="btn sec" href="{{ url_for('exam_report_pdf', eid=meta.id) }}">PDF hisobot</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if not attempts %}<p class="muted" style="margin-bottom:0">Hali urinish yo'q.</p>{% else %}
+  <table style="margin-top:12px">
+    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Var.</th><th>Boshlagan</th><th>Holat</th><th>Ball</th><th></th></tr></thead>
+    <tbody>
+    {% for a in attempts %}
+      <tr>
+        <td><b>{{ a.student_name }}</b>{% if a.cheat_count %} <span class="tag nokey" title="Nazorat buzilishi">⚑ {{ a.cheat_count }}</span>{% endif %}</td>
+        <td>{{ a.klass or '—' }}</td>
+        <td class="muted">{{ a.direction_name or '—' }}</td>
+        <td>{{ a.variant|int }}</td>
+        <td class="muted">{{ a.started_at }}</td>
+        <td>{% if a.submitted %}<span class="tag ok">yakunlangan</span>{% elif a.blocked %}<span class="tag nokey">to'xtatilgan</span>{% else %}<span class="tag flag">jarayonda</span>{% endif %}</td>
+        <td>{% if a.submitted %}<b>{{ a.report.total_points }}</b> <span class="muted">({{ a.report.percent }}%)</span>{% else %}{{ a.answers|length }}/90{% endif %}</td>
+        <td style="white-space:nowrap">
+          {% if a.submitted %}
+          <a class="btn sec" href="{{ url_for('exam_attempt_admin', eid=meta.id, aid=a.id) }}">Ochish</a>
+          <a class="btn sec" href="{{ url_for('exam_attempt_admin_pdf', eid=meta.id, aid=a.id) }}">PDF</a>
+          {% endif %}
+          <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="delete_attempt"><input type="hidden" name="aid" value="{{ a.id }}"><button class="btn danger">O'chirish</button></form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+
+<script>
+function copyTxt(btn, txt){
+  navigator.clipboard && navigator.clipboard.writeText(txt);
+  const o = btn.textContent;
+  btn.textContent = 'Nusxalandi ✓';
+  setTimeout(() => btn.textContent = o, 2000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Natija — {{ meta.title }}</title>
+<style>
+:root{--ink:#111111;--paper:#f7f6f2;--line:#e3e1da;--muted:#6b6f76;--acc:#1a4fd6;--danger:#b3261e;--r:7px}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);padding:26px 14px;position:relative}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='460'><defs><pattern id='p' width='9' height='9' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='0' y2='9' stroke='%23111111' stroke-width='2.4'/></pattern></defs><text x='500' y='320' text-anchor='middle' font-family='Georgia, serif' font-size='330' font-weight='bold' letter-spacing='26' fill='url(%23p)' stroke='%23111111' stroke-width='2.5' opacity='0.06'>DTM</text></svg>"),
+    repeating-linear-gradient(0deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px);
+  background-repeat:no-repeat,repeat,repeat;background-position:center center,0 0,0 0}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.wrap{max-width:940px;margin:0 auto;position:relative;z-index:1}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px 26px;margin-bottom:16px;animation:rise .5s ease both}
+.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.14s}.card:nth-child(4){animation-delay:.2s}
+.hero{background:var(--ink);color:#fff;border:0;text-align:center;padding:36px 24px 30px}
+.hero .t{font-size:10.5px;letter-spacing:3px;color:#9a9da3;margin-bottom:6px;text-transform:uppercase;font-weight:700}
+.hero h1{margin:0 0 4px;font-size:22px;letter-spacing:.2px}
+.hero .who{color:#9a9da3;font-size:13px;margin-bottom:22px;letter-spacing:.4px}
+.score{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:22px;font-weight:600;color:#9a9da3}
+.pct{display:inline-block;margin-top:12px;font-size:13px;color:#fff;font-weight:700;letter-spacing:1.5px;
+     background:var(--acc);padding:5px 16px;border-radius:99px}
+.statrow{display:flex;justify-content:center;gap:34px;margin-top:22px;flex-wrap:wrap;font-size:10.5px;
+         letter-spacing:1.8px;text-transform:uppercase;color:#9a9da3;font-weight:700}
+.statrow b{font-size:22px;display:block;color:#fff;letter-spacing:0;margin-top:3px}
+h2{margin:0 0 12px;font-size:12px;letter-spacing:2px;text-transform:uppercase;border-bottom:1.5px solid var(--ink);padding-bottom:8px}
+h2 .sub{font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;font-size:12.5px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:left}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1.4px}
+tr:last-child td{border-bottom:0}
+.warn{background:#fdf3e0;color:#8a5a00;padding:10px 14px;border-radius:var(--r);margin-bottom:14px;font-weight:500;font-size:14px}
+.nokey{background:#faeae8;color:var(--danger)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:5px}
+.acell{border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:12.5px;display:flex;align-items:center;gap:6px}
+.acell .n{color:var(--muted);font-weight:800;font-size:11px;min-width:18px}
+.acell.ok{background:var(--ink);border-color:var(--ink);color:#fff}
+.acell.ok .n{color:#9a9da3}
+.acell.bad{background:#fff;border-color:var(--danger)}
+.acell.bad b{color:var(--danger)}
+.acell.blank{background:transparent;color:#9aa0a8}
+.acell b{font-size:13px}
+.acell .k{color:var(--acc);font-size:11.5px;font-weight:700}
+a.btn{display:inline-block;background:var(--acc);color:#fff;border-radius:var(--r);padding:12px 22px;text-decoration:none;
+      font-weight:700;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;transition:transform .15s,box-shadow .15s}
+a.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(26,79,214,.35)}
+.foot{text-align:center;color:#9aa0a8;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin-top:8px}
+@media print{body{background:#fff}body::before{display:none}.noprint{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card hero">
+    <div class="t">DTM Mock · Natija</div>
+    <h1>{{ meta.title }}</h1>
+    <div class="who">{{ att.student_name }}{% if att.klass %} · {{ att.klass }}{% endif %}{% if att.direction_name %} · {{ att.direction_name }}{% endif %} · Variant {{ att.variant|int }} · {{ att.finished_at }}</div>
+    <div class="score">{{ rep.total_points }} <small>/ {{ rep.max_points }}</small></div>
+    <div class="pct">{{ rep.percent }}%</div>
+    <div class="statrow">
+      <span>To'g'ri<b>{{ rep.correct }}</b></span>
+      <span>Noto'g'ri<b>{{ rep.wrong }}</b></span>
+      <span>Bo'sh<b>{{ rep.blank }}</b></span>
+      <span>Vaqt<b>{{ (att.elapsed_s // 60) }} daq</b></span>
+    </div>
+  </div>
+
+  {% if not rep.key_found %}<div class="warn nokey"><b>Diqqat:</b> bu variant uchun kalit kiritilmagan — ballar hisoblanmadi.</div>{% endif %}
+  {% for w in rep.warnings %}<div class="warn">{{ w }}</div>{% endfor %}
+
+  <div class="card">
+    <h2>Fanlar bo'yicha</h2>
+    <table>
+      <thead><tr><th>Fan</th><th>Savollar</th><th>To'g'ri</th><th>Noto'g'ri</th><th>Bo'sh</th><th>1 savol</th><th>Ball</th></tr></thead>
+      <tbody>
+      {% for s in rep.subjects %}
+        <tr><td><b>{{ s.name }}</b></td><td>{{ s.q_from }}–{{ s.q_to }}</td><td>{{ s.correct }}</td><td>{{ s.wrong }}</td>
+            <td>{{ s.blank }}</td><td>{{ s.per_question }}</td><td><b>{{ s.points }}</b> / {{ s.max_points }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Javoblar tahlili {% if rep.key_found %}<span class="sub">(sizniki → to'g'risi)</span>{% endif %}</h2>
+    <div class="agrid">
+      {% for q in rep.questions %}
+      <div class="acell {% if q.correct in ('*','-') %}blank{% elif q.is_correct %}ok{% elif q.given %}bad{% else %}blank{% endif %}">
+        <span class="n">{{ q.q }}</span>
+        <b>{{ q.given or '—' }}</b>
+        {% if rep.key_found and q.correct not in ('*','-') and not q.is_correct %}<span class="k">→{{ q.correct }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="noprint" style="text-align:center;margin-bottom:12px">
+    {% if admin_view %}
+    <a class="btn" href="{{ url_for('exam_manage', eid=meta.id) }}">← Boshqaruvga qaytish</a>
+    <a class="btn" style="background:#111" href="{{ url_for('exam_attempt_admin_pdf', eid=meta.id, aid=att.id) }}">PDF yuklab olish</a>
+    {% else %}
+    <a class="btn" href="{{ url_for('home') }}">Bosh sahifa</a>
+    <a class="btn" style="background:#111" href="{{ url_for('exam_result_pdf', eid=att.exam_id, aid=att.id) }}">PDF yuklab olish</a>
+    {% endif %}
+  </div>
+  <div class="foot">1–30 → 1.1 ball · 31–60 → 3.1 ball · 61–90 → 2.1 ball · maksimal 189.0</div>
+</div>
+</body>
+</html>

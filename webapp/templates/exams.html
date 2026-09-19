@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Imtihonlar{% endblock %}
+{% block body %}
+<div class="card">
+  <h2>Yangi umumiy imtihon yaratish</h2>
+  <p class="hint">Bitta <b>umumiy imtihon</b> (masalan, "Shanba 9:00 mock") ichida bir nechta
+  <b>yo'nalish</b> bo'ladi — har yo'nalishning o'z fanlari, o'z kirish kodi, o'z PDF kitobchalari
+  va javob kalitlari. Yaratilgach: <b>1)</b> Tuzilish sahifasida yo'nalishlarni qo'shib PDF yuklaysiz,
+  <b>2)</b> Javoblar sahifasida har fanning kalitlarini kiritasiz, <b>3)</b> "Ochish"ni bosib
+  kodlarni o'quvchilarga berasiz.</p>
+  <form method="post">
+    <div class="row">
+      <div><label>Imtihon nomi</label><input type="text" name="title" required placeholder="DTM mock — shanba" style="min-width:280px"></div>
+      <div><label>O'tkazish vaqti (ixtiyoriy)</label><input type="text" name="scheduled_at" placeholder="Shanba, 09:00" style="width:170px"></div>
+      <div><label>Davomiyligi (daqiqa)</label><input type="number" name="duration" value="180" min="5" max="600" style="width:110px"></div>
+      <div><button class="btn" type="submit">Yaratish</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Imtihonlar ({{ items|length }})</h2>
+  {% if not items %}<p class="muted" style="margin-bottom:0">Hali imtihon yaratilmagan.</p>{% else %}
+  <table>
+    <thead><tr><th>Nomi</th><th>Vaqti</th><th>Yo'nalishlar (kodlari)</th><th>Holat</th><th>Davomiylik</th><th>Urinishlar</th><th></th></tr></thead>
+    <tbody>
+    {% for it in items %}
+      <tr>
+        <td><b>{{ it.title }}</b></td>
+        <td class="muted">{{ it.scheduled_at or '—' }}</td>
+        <td>
+          {% for did, d in (it.directions or {})|dictsort %}
+          <div style="white-space:nowrap">{{ d.name }} — <code>{{ d.code }}</code></div>
+          {% else %}<span class="muted">yo'nalish qo'shilmagan</span>{% endfor %}
+        </td>
+        <td>
+          {% if it.state == 'open' %}<span class="tag ok">ochiq</span>
+          {% elif it.state == 'closed' %}<span class="tag nokey">yakunlangan</span>
+          {% else %}<span class="tag flag">qoralama</span>{% endif %}
+        </td>
+        <td>{{ it.duration_min }} daq</td>
+        <td>{{ it.n_attempts }}</td>
+        <td style="white-space:nowrap">
+          <a class="btn sec" href="{{ url_for('exam_manage', eid=it.id) }}">Tuzilish</a>
+          <a class="btn sec" href="{{ url_for('exam_answers', eid=it.id) }}">Javoblar</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

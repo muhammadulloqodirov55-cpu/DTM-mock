@@ -1,0 +1,20 @@
+{
+ "id": "AB0001",
+ "title": "DTM mock 2",
+ "duration_min": 180,
+ "state": "open",
+ "created_at": "2026-09-18 22:52",
+ "subjects": {
+  "m1": "Ona tili",
+  "m2": "Matematika",
+  "m3": "O'zbekiston tarixi",
+  "fan1": "Matematika",
+  "fan2": "Ingliz tili"
+ },
+ "variants": {
+  "01": {
+   "pdf": "v01.pdf",
+   "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+ }
+}

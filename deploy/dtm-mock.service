@@ -1,0 +1,40 @@
+# DTM Mock — systemd xizmati (sandbox bilan)
+# O'rnatish: sudo cp deploy/dtm-mock.service /etc/systemd/system/
+#            sudo systemctl daemon-reload && sudo systemctl enable --now dtm-mock
+# Yo'llarni o'z muhitingizga moslang (User, WorkingDirectory).
+
+[Unit]
+Description=DTM Mock exam platform
+After=network.target
+
+[Service]
+User=muhammadullo
+WorkingDirectory=/home/muhammadullo/Desktop/dtm_omr
+Environment=HOST=127.0.0.1
+Environment=PORT=5000
+Environment=DTM_BEHIND_PROXY=1
+Environment=DTM_HTTPS=1
+ExecStart=/home/muhammadullo/Desktop/dtm_omr/.venv/bin/python -m webapp.app
+Restart=always
+RestartSec=3
+
+# --- resurs chegaralari: bosim ostida OS yiqilmaydi ---
+MemoryMax=1G
+TasksMax=256
+LimitNOFILE=8192
+
+# --- sandbox: ilova buzilsa ham OS himoyada (APT qatlarni cheklaydi) ---
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/muhammadullo/Desktop/dtm_omr/data
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

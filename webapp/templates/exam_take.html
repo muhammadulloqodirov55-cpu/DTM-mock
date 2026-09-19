@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ meta.title }} — DTM Mock</title>
+<style>
+:root{
+  --ink:#111111; --paper:#f7f6f2; --card:#ffffff; --line:#e3e1da; --muted:#6b6f76;
+  --acc:#1a4fd6; --acc-soft:#e8eefc; --danger:#b3261e; --r:7px;
+  --amber:#f2b418; --amber-soft:#fbedc7; --amber-deep:#9a6b00;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);
+     display:flex;flex-direction:column;overflow:hidden}
+/* markaziy naqshli DTM foni + nozik to'r */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='460'><defs><pattern id='p' width='9' height='9' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='0' y2='9' stroke='%23111111' stroke-width='2.4'/></pattern></defs><text x='500' y='320' text-anchor='middle' font-family='Georgia, serif' font-size='330' font-weight='bold' letter-spacing='26' fill='url(%23p)' stroke='%23111111' stroke-width='2.5' opacity='0.06'>DTM</text></svg>"),
+    repeating-linear-gradient(0deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px);
+  background-repeat:no-repeat,repeat,repeat;background-position:center center,0 0,0 0}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(1)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+/* ---- yuqori panel ---- */
+#top{background:var(--ink);color:#fff;display:flex;align-items:center;gap:14px;padding:0 16px;height:56px;flex:0 0 auto;position:relative;z-index:2;min-width:0}
+#top .brand{font-weight:800;font-size:20px;letter-spacing:1px;flex:0 0 auto}
+#top .sep{width:1px;height:24px;background:rgba(255,255,255,.28);flex:0 0 auto}
+#top .title{font-weight:600;font-size:14.5px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26vw;flex:0 1 auto;min-width:0}
+#top .who{color:#9a9da3;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:18vw;flex:0 1 auto;min-width:0}
+#timer{margin-left:auto;font-variant-numeric:tabular-nums;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
+       font-weight:700;font-size:26px;letter-spacing:2px;white-space:nowrap;flex:0 0 auto}
+#timer.low{color:#ff6b5e;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.5}}
+#saveState{font-size:10.5px;color:#9a9da3;letter-spacing:1px;text-transform:uppercase;width:70px;text-align:right;flex:0 0 auto}
+#finishBtn{background:var(--acc);color:#fff;border:0;border-radius:var(--r);padding:11px 26px;font-size:13px;font-weight:700;
+           letter-spacing:1.6px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s;flex:0 0 auto}
+#finishBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,79,214,.4)}
+#finishBtn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}
+/* ---- asosiy bo'linma ---- */
+#main{flex:1;display:flex;min-height:0;position:relative;z-index:1}
+#pdfSide{flex:1 1 62%;display:flex;flex-direction:column;min-width:0}
+#pdfBar{margin:14px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;align-items:center;gap:6px;
+        padding:6px 10px;flex:0 0 auto;box-shadow:0 2px 10px rgba(17,17,17,.06);animation:rise .45s ease both}
+#pdfBar button{background:transparent;border:1px solid transparent;border-radius:5px;padding:5px 11px;font-size:14px;cursor:pointer;
+               font-weight:600;color:var(--ink);transition:background .12s,border-color .12s}
+#pdfBar button:hover{background:var(--paper);border-color:var(--line)}
+#pageInfo,#zoomInfo{font-size:11.5px;color:var(--muted);letter-spacing:1.2px;min-width:56px;text-align:center;font-weight:600}
+#pdfWrap{flex:1;overflow:auto;padding:16px 0 24px}
+.pgbox{margin:0 auto 16px;background:#fff;box-shadow:0 4px 0 rgba(17,17,17,.06),0 10px 28px rgba(17,17,17,.14);
+       position:relative;border:1px solid var(--line);animation:rise .5s ease both}
+.pgbox canvas{display:block;width:100%;height:100%}
+.pgnum{position:absolute;bottom:8px;right:10px;background:var(--ink);color:#fff;font-size:10px;letter-spacing:1px;padding:2px 8px}
+/* ---- javoblar paneli ---- */
+#ansSide{flex:0 0 38%;max-width:560px;min-width:340px;display:flex;flex-direction:column;background:rgba(255,255,255,.88);
+         border-left:1px solid var(--line);backdrop-filter:blur(2px);animation:rise .45s ease both}
+#ansHead{padding:14px 18px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
+#ansHead .lbl{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:700;
+              letter-spacing:1.8px;text-transform:uppercase;color:var(--muted)}
+#ansHead .lbl b{color:var(--ink);font-size:13px;letter-spacing:1px}
+#pbarWrap{margin-top:8px;height:5px;background:#e9e7e0;border-radius:99px;overflow:hidden}
+#pbar{height:100%;width:0%;background:var(--ink);transition:width .35s ease}
+#ansGrid{flex:1;overflow-y:auto;padding:4px 18px 16px}
+.sectHdr{position:sticky;top:0;background:rgba(255,255,255,.97);z-index:2;display:flex;justify-content:space-between;align-items:baseline;
+         padding:14px 2px 7px;border-bottom:1.5px solid var(--ink);margin-bottom:10px}
+.sectHdr .nm{font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase}
+.sectHdr .pt{font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--acc);text-transform:uppercase}
+/* DTM varaqasidagidek: raqamlar USTUN bo'ylab oqadi (1-10, 11-20, 21-30) */
+.qcols{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px}
+.qcol{flex:1;min-width:158px;display:flex;flex-direction:column;gap:5px}
+.qrow{display:flex;align-items:center;gap:9px}
+/* savol raqami — tugma EMAS: alohida oddiy yozuv */
+.qn{width:24px;text-align:right;font-size:12.5px;font-weight:800;color:#b4b0a6;flex:0 0 auto;
+    font-variant-numeric:tabular-nums;transition:color .18s}
+.qrow.done .qn{color:var(--ink)}
+/* A-D — yaxlit segmentli guruh, raqamdan aniq ajralgan */
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;
+     transition:border-color .18s}
+.qrow.done .seg{border-color:var(--ink)}
+.bub{width:29px;height:25px;border:0;border-left:1px solid var(--line);background:transparent;font-size:11.5px;font-weight:700;
+     color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;
+     transition:background .12s,color .12s;padding:0}
+.bub:first-child{border-left:0}
+.bub:hover{background:var(--acc-soft);color:var(--acc)}
+.bub.sel{background:var(--ink);color:#fff;animation:pop .18s ease}
+/* "keyin ko'rib chiqaman" bayrog'i — sariq */
+.flag{width:22px;height:25px;border:1.5px solid transparent;border-radius:5px;background:transparent;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;padding:0;font-size:12px;color:#cfcabc;
+      transition:color .15s,background .15s,border-color .15s;flex:0 0 auto}
+.flag:hover{color:var(--amber);border-color:var(--amber-soft);background:var(--amber-soft)}
+.flag.on{background:var(--amber);border-color:var(--amber);color:var(--ink);animation:pop .18s ease}
+.qrow.flagged .qn{color:var(--amber-deep)}
+#legend{flex:0 0 auto;border-top:1px solid var(--line);padding:10px 18px;display:flex;gap:20px;font-size:10.5px;
+        letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:600}
+#legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#legend .a i{background:var(--ink)}
+#legend .n i{background:#fff;border:1px solid var(--line)}
+#legend .f i{background:var(--amber)}
+/* mobil */
+@media (max-width: 880px){
+  #main{flex-direction:column}
+  #pdfSide{flex:1 1 52%}
+  #ansSide{flex:1 1 48%;max-width:none;min-width:0;border-left:0;border-top:1px solid var(--line)}
+  #top .who,#top .sep:nth-of-type(2){display:none}
+  #timer{font-size:20px}
+}
+/* tasdiqlash oynasi */
+#overlay{position:fixed;inset:0;background:rgba(17,17,17,.5);display:none;align-items:center;justify-content:center;z-index:50}
+#overlay.show{display:flex}
+#overlay .box{background:#fff;border-radius:10px;padding:28px 30px;max-width:400px;text-align:center;border-top:4px solid var(--ink);
+              animation:rise .25s ease both}
+#overlay .box h3{margin:0 0 8px;letter-spacing:.3px}
+#overlay .box p{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.5}
+#overlay button{border:0;border-radius:var(--r);padding:12px 20px;font-size:12.5px;font-weight:700;letter-spacing:1.4px;
+                text-transform:uppercase;cursor:pointer;margin:0 5px;transition:transform .15s}
+#overlay button:hover{transform:translateY(-1px)}
+#confirmYes{background:var(--acc);color:#fff}
+#confirmNo{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+/* ---- boshlash ekrani: to'liq ekranga o'tish sharti ---- */
+#startOv{position:fixed;inset:0;background:var(--ink);z-index:80;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff}
+#startOv .in{max-width:480px;padding:24px;animation:rise .5s ease both}
+#startOv .t{font-size:11px;letter-spacing:3px;color:#9a9da3;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+#startOv h2{margin:0 0 10px;font-size:24px}
+#startOv p{color:#b9bcc2;font-size:14.5px;line-height:1.65;margin:0 0 24px}
+#startOv b{color:#fff}
+#startBtn{background:var(--acc);color:#fff;border:0;border-radius:9px;padding:16px 34px;font-size:14px;font-weight:800;
+          letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s}
+#startBtn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(26,79,214,.5)}
+/* ---- firibgarlik ekrani ---- */
+#cheatOv{position:fixed;inset:0;background:#8f1710;z-index:90;display:none;align-items:center;justify-content:center;text-align:center;color:#fff}
+#cheatOv.show{display:flex}
+#cheatOv .in{max-width:520px;padding:24px}
+#cheatOv h2{margin:0 0 12px;font-size:34px;letter-spacing:1px}
+#cheatOv p{font-size:15px;line-height:1.6;color:#ffd9d5;margin:0 0 10px}
+#cheatSec{font-size:56px;font-weight:800;font-variant-numeric:tabular-nums}
+#cheatWait{display:none}
+.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;
+      margin:14px auto 0;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="top">
+  <div class="brand">DTM</div>
+  <div class="sep"></div>
+  <div class="title">{{ meta.title }}</div>
+  <div class="sep"></div>
+  <div class="who">{{ att.student_name }} · Variant {{ att.variant|int }}</div>
+  <div id="timer">--:--</div>
+  <div id="saveState"></div>
+  <button id="finishBtn">Yakunlash</button>
+</div>
+
+<div id="main">
+  <div id="pdfSide">
+    <div id="pdfBar">
+      <button id="prevPg" title="Oldingi sahifa">‹</button>
+      <span id="pageInfo">–</span>
+      <button id="nextPg" title="Keyingi sahifa">›</button>
+      <span style="width:10px"></span>
+      <button id="zoomOut">−</button>
+      <span id="zoomInfo">100%</span>
+      <button id="zoomIn">+</button>
+      <button id="zoomFit">⤢</button>
+    </div>
+    <div id="pdfWrap" oncontextmenu="return false"></div>
+  </div>
+
+  <div id="ansSide">
+    <div id="ansHead">
+      <div class="lbl"><span>Sizning jarayoningiz</span><b id="count">0/90</b></div>
+      <div id="pbarWrap"><div id="pbar"></div></div>
+    </div>
+    <div id="ansGrid">
+      {% for a, b, name, pts in blocks %}
+      <div class="sectHdr"><span class="nm">{{ loop.index }}-bo'lim: {{ name }}</span><span class="pt">{{ a }}–{{ b }} · {{ pts }} ball</span></div>
+      <div class="qcols">
+        {% set nq = b - a + 1 %}
+        {% set percol = 10 if nq % 10 == 0 else ((nq + 2) // 3) %}
+        {% for c in range(0, nq, percol) %}
+        <div class="qcol">
+          {% for q in range(a + c, [a + c + percol, b + 1]|min) %}
+          <div class="qrow" id="row{{ q }}">
+            <span class="qn">{{ q }}</span>
+            <div class="seg">
+              {% for o in ['A','B','C','D'] %}<button type="button" class="bub" data-q="{{ q }}" data-o="{{ o }}">{{ o }}</button>{% endfor %}
+            </div>
+            <button type="button" class="flag" data-fq="{{ q }}" title="Keyin ko'rib chiqish uchun belgilash">⚑</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div id="legend">
+      <span class="a"><i></i>Belgilangan</span>
+      <span class="n"><i></i>Belgilanmagan</span>
+      <span class="f"><i></i>Ko'rib chiqish (⚑)</span>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="box">
+    <h3 id="ovTitle">Imtihonni yakunlaysizmi?</h3>
+    <p id="ovText"></p>
+    <button id="confirmYes">Ha, yakunlash</button>
+    <button id="confirmNo">Davom etish</button>
+  </div>
+</div>
+
+<div id="startOv">
+  <div class="in">
+    <div class="t">DTM Mock · Nazorat rejimi</div>
+    <h2>{{ meta.title }}</h2>
+    <p><b>{{ att.student_name }}</b> ({{ att.klass }}) · Variant {{ att.variant|int }}<br><br>
+    Imtihon <b>to'liq ekran</b> rejimida o'tadi. Boshqa oyna/varaqqa o'tish, to'liq ekrandan
+    chiqish — <b>firibgarlik</b> deb baholanadi: imtihon darhol to'xtatiladi va faqat admin
+    ruxsati bilan davom etadi. Javoblaringiz har safar avtomatik saqlanadi.</p>
+    <button id="startBtn">Imtihonni boshlash</button>
+  </div>
+</div>
+
+<div id="cheatOv">
+  <div class="in">
+    <div id="cheatMain">
+      <h2>SIZ FIRIB QILDINGIZ!</h2>
+      <p>Imtihon muhitidan chiqib ketdingiz. Imtihon <b>to'xtatildi</b>, vaqtingiz pauzaga olindi
+      va bu holat adminga yuborildi.</p>
+      <div id="cheatSec">10</div>
+    </div>
+    <div id="cheatWait">
+      <h2>Admin ruxsati kutilmoqda…</h2>
+      <p>Admin «Yana imkon berish»ni bossa, imtihon shu joyidan davom etadi —
+      javoblaringiz va qolgan vaqtingiz saqlangan.</p>
+      <div class="spin"></div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='pdfjs/pdf.min.js') }}"></script>
+<script>
+"use strict";
+const AID = {{ att.id|tojson }};
+const SAVE_URL = {{ url_for('exam_save', eid=att.exam_id, aid=att.id)|tojson }};
+const SUBMIT_URL = {{ url_for('exam_submit', eid=att.exam_id, aid=att.id)|tojson }};
+const PDF_URL = {{ url_for('exam_pdf', eid=att.exam_id, aid=att.id)|tojson }};
+const CHEAT_URL = {{ url_for('exam_cheat', eid=att.exam_id, aid=att.id)|tojson }};
+const STATUS_URL = {{ url_for('exam_status', eid=att.exam_id, aid=att.id)|tojson }};
+let remaining = {{ remaining_s }};
+const N_Q = 90;
+let examActive = false, blockedNow = false;
+
+/* ---------------- javoblar + bayroqlar holati ---------------- */
+let ans = {{ att.answers|tojson }};
+let flags = new Set({{ flags|tojson }});
+try {
+  const loc = JSON.parse(localStorage.getItem("dtm_" + AID) || "{}");
+  if (Object.keys(loc).length > Object.keys(ans).length) ans = loc;   // yangilashdan keyin tiklash
+  const lf = JSON.parse(localStorage.getItem("dtmf_" + AID) || "[]");
+  if (lf.length > flags.size) flags = new Set(lf);
+} catch (e) {}
+let dirty = false, submitting = false;
+
+function persistLocal() {
+  localStorage.setItem("dtm_" + AID, JSON.stringify(ans));
+  localStorage.setItem("dtmf_" + AID, JSON.stringify([...flags]));
+}
+function paint() {
+  document.querySelectorAll(".bub").forEach(b => {
+    b.classList.toggle("sel", ans[b.dataset.q] === b.dataset.o);
+  });
+  document.querySelectorAll(".flag").forEach(f => {
+    f.classList.toggle("on", flags.has(+f.dataset.fq));
+  });
+  for (let q = 1; q <= N_Q; q++) {
+    const r = document.getElementById("row" + q);
+    if (r) {
+      r.classList.toggle("done", !!ans[q]);
+      r.classList.toggle("flagged", flags.has(q));
+    }
+  }
+  const n = Object.keys(ans).length;
+  document.getElementById("count").textContent = n + "/" + N_Q;
+  document.getElementById("pbar").style.width = (n / N_Q * 100) + "%";
+}
+document.getElementById("ansGrid").addEventListener("click", e => {
+  if (submitting || blockedNow) return;
+  const f = e.target.closest(".flag");
+  if (f) {
+    const q = +f.dataset.fq;
+    flags.has(q) ? flags.delete(q) : flags.add(q);
+    dirty = true; persistLocal(); paint();
+    return;
+  }
+  const b = e.target.closest(".bub");
+  if (!b) return;
+  const q = b.dataset.q, o = b.dataset.o;
+  if (ans[q] === o) delete ans[q]; else ans[q] = o;
+  dirty = true; persistLocal(); paint();
+});
+paint();
+
+/* ---------------- avto-saqlash ---------------- */
+const saveState = document.getElementById("saveState");
+async function save() {
+  if (!dirty || submitting || blockedNow) return;
+  dirty = false;
+  try {
+    const r = await fetch(SAVE_URL, {method: "POST", headers: {"Content-Type": "application/json"},
+                                     body: JSON.stringify({answers: ans, flags: [...flags]}),
+                                     keepalive: true});
+    if (r.status === 409) { doSubmit(); return; }
+    if (r.status === 403 || r.status === 404) {
+      // sessiya boshqa qurilmada ochilgan (yangi token) — bu nusxa endi yozolmaydi
+      dirty = true; saveState.textContent = "boshqa qurilmada";
+      return;
+    }
+    if (!r.ok) { dirty = true; saveState.textContent = "xato"; return; }
+    const d = await r.json();
+    if (typeof d.remaining_s === "number") remaining = d.remaining_s;
+    saveState.textContent = "saqlandi";
+    setTimeout(() => saveState.textContent = "", 2500);
+  } catch (e) { dirty = true; saveState.textContent = "oflayn"; }
+}
+setInterval(save, 12000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) save(); });
+
+/* ---------------- taymer ---------------- */
+const timerEl = document.getElementById("timer");
+let timerInt = null;
+function tick() {
+  if (blockedNow) return;                 // blokda vaqt muzlaydi (server ham shunday hisoblaydi)
+  remaining -= 1;
+  if (remaining <= 0) {
+    timerEl.textContent = "0:00:00";
+    clearInterval(timerInt);          // muvaffaqiyatsiz topshirishda har soniya qayta urinmasin
+    doSubmit();
+    return;
+  }
+  const h = Math.floor(remaining / 3600), m = Math.floor(remaining % 3600 / 60), s = remaining % 60;
+  timerEl.textContent = h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  if (remaining < 300) timerEl.classList.add("low");
+}
+tick(); timerInt = setInterval(tick, 1000);
+
+/* ---------------- topshirish ---------------- */
+const finishBtn = document.getElementById("finishBtn");
+async function doSubmit() {
+  if (submitting) return;
+  submitting = true;
+  finishBtn.disabled = true;
+  try {
+    const r = await fetch(SUBMIT_URL, {method: "POST", headers: {"Content-Type": "application/json"},
+                                       body: JSON.stringify({answers: ans})});
+    if (r.status === 403 || r.status === 404) {
+      submitting = false; finishBtn.disabled = false;
+      alert("Sessiya topilmadi. Sahifani yangilang — javoblaringiz saqlangan.");
+      return;
+    }
+    if (r.status === 429) {
+      submitting = false; finishBtn.disabled = false;
+      alert("Juda ko'p so'rov — bir necha soniyadan so'ng qayta bosing.");
+      return;
+    }
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.ok) throw new Error("server");
+    localStorage.removeItem("dtm_" + AID);
+    localStorage.removeItem("dtmf_" + AID);
+    location.href = d.url;
+  } catch (e) {
+    submitting = false; finishBtn.disabled = false;
+    alert("Topshirishda xato — internetni tekshirib, «Yakunlash»ni qayta bosing.");
+  }
+}
+const overlay = document.getElementById("overlay");
+finishBtn.addEventListener("click", () => {
+  const blank = N_Q - Object.keys(ans).length;
+  let t = blank ? blank + " ta savol belgilanmagan." : "Barcha savollar belgilangan.";
+  if (flags.size) t += " " + flags.size + " ta savol ko'rib chiqish uchun bayroqlangan (⚑).";
+  document.getElementById("ovText").textContent = t + " Yakunlagach o'zgartirib bo'lmaydi.";
+  overlay.classList.add("show");
+});
+document.getElementById("confirmNo").addEventListener("click", () => overlay.classList.remove("show"));
+document.getElementById("confirmYes").addEventListener("click", () => { overlay.classList.remove("show"); doSubmit(); });
+
+/* ---------------- PDF ko'ruvchi ---------------- */
+pdfjsLib.GlobalWorkerOptions.workerSrc = {{ url_for('static', filename='pdfjs/pdf.worker.min.js')|tojson }};
+const wrap = document.getElementById("pdfWrap");
+let pdf = null, zoom = 1.0, fitWidth = true, pages = [], current = 1;
+
+function containerWidth() { return wrap.clientWidth - 48; }
+
+async function renderPage(n) {
+  const pg = pages[n - 1];
+  if (!pg || pg.rendering || pg.zoomDone === zoomKey()) return;
+  pg.rendering = true;
+  const page = await pdf.getPage(n);
+  const base = page.getViewport({scale: 1});
+  const scale = (fitWidth ? containerWidth() / base.width : 1.4) * zoom;
+  const vp = page.getViewport({scale});
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const canvas = pg.canvas;
+  canvas.width = Math.floor(vp.width * ratio);
+  canvas.height = Math.floor(vp.height * ratio);
+  pg.box.style.width = Math.floor(vp.width) + "px";
+  pg.box.style.height = Math.floor(vp.height) + "px";
+  await page.render({canvasContext: canvas.getContext("2d"), viewport: vp,
+                     transform: ratio !== 1 ? [ratio, 0, 0, ratio, 0, 0] : null}).promise;
+  pg.zoomDone = zoomKey();
+  pg.rendering = false;
+}
+function zoomKey() { return zoom.toFixed(2) + "|" + (fitWidth ? "f" : "n") + "|" + containerWidth(); }
+function rerenderVisible() {
+  pages.forEach(pg => { pg.zoomDone = null; });
+  visiblePages().forEach(n => renderPage(n));
+}
+function visiblePages() {
+  const out = [];
+  const top = wrap.scrollTop, bot = top + wrap.clientHeight;
+  pages.forEach((pg, i) => {
+    const y0 = pg.box.offsetTop, y1 = y0 + pg.box.offsetHeight;
+    if (y1 > top - 900 && y0 < bot + 900) out.push(i + 1);
+  });
+  return out;
+}
+wrap.addEventListener("scroll", () => {
+  visiblePages().forEach(n => renderPage(n));
+  const probe = wrap.scrollTop + wrap.clientHeight * 0.33;
+  for (let i = 0; i < pages.length; i++) {
+    const b = pages[i].box;
+    if (b.offsetTop <= probe && b.offsetTop + b.offsetHeight > probe) { current = i + 1; break; }
+  }
+  document.getElementById("pageInfo").textContent = current + " / " + pages.length;
+});
+
+(async () => {
+  try {
+    // isEvalSupported:false — CVE-2024-4367 sinfidagi PDF-orqali-JS hujumlariga qo'shimcha to'siq
+    pdf = await pdfjsLib.getDocument({url: PDF_URL, isEvalSupported: false}).promise;
+  } catch (e) {
+    wrap.innerHTML = "<p style='text-align:center;margin-top:40px;color:#6b6f76'>PDF yuklab bo'lmadi. Sahifani yangilang.</p>";
+    return;
+  }
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const box = document.createElement("div");
+    box.className = "pgbox";
+    box.style.animationDelay = Math.min(n * 60, 400) + "ms";
+    const canvas = document.createElement("canvas");
+    const tag = document.createElement("div");
+    tag.className = "pgnum"; tag.textContent = n;
+    box.appendChild(canvas); box.appendChild(tag);
+    wrap.appendChild(box);
+    const w = containerWidth();
+    box.style.width = w + "px"; box.style.height = Math.floor(w * 1.414) + "px";
+    pages.push({box, canvas, zoomDone: null, rendering: false});
+  }
+  document.getElementById("pageInfo").textContent = "1 / " + pdf.numPages;
+  visiblePages().forEach(n => renderPage(n));
+})();
+
+function gotoPage(n) {
+  n = Math.max(1, Math.min(pages.length, n));
+  current = n;                                          // darhol — tez ketma-ket bosishda adashmaydi
+  document.getElementById("pageInfo").textContent = current + " / " + pages.length;
+  wrap.scrollTop = pages[n - 1].box.offsetTop - 8;
+  renderPage(n);
+}
+document.getElementById("prevPg").addEventListener("click", () => gotoPage(current - 1));
+document.getElementById("nextPg").addEventListener("click", () => gotoPage(current + 1));
+document.getElementById("zoomIn").addEventListener("click", () => { zoom = Math.min(3, zoom + 0.2); zoomUi(); });
+document.getElementById("zoomOut").addEventListener("click", () => { zoom = Math.max(0.5, zoom - 0.2); zoomUi(); });
+document.getElementById("zoomFit").addEventListener("click", () => { zoom = 1.0; fitWidth = true; zoomUi(); });
+function zoomUi() {
+  document.getElementById("zoomInfo").textContent = Math.round(zoom * 100) + "%";
+  rerenderVisible();
+}
+window.addEventListener("resize", () => rerenderVisible());
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && ["p", "s"].includes(e.key.toLowerCase())) e.preventDefault();
+});
+window.addEventListener("beforeunload", e => {
+  if (!submitting && !blockedNow) { save(); e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ---------------- NAZORAT REJIMI (anti-cheat) ---------------- */
+const startOv = document.getElementById("startOv");
+document.getElementById("startBtn").addEventListener("click", () => {
+  // MUHIM: fullscreen so'rovini KUTMAYMIZ — ba'zi muhitlarda promise hech qachon
+  // javob qaytarmaydi va imtihon ochilmay qolardi. So'rov yuboriladi, ekran esa
+  // darhol ochiladi; fullscreen rad etilsa ham nazorat (tab/fokus) ishlayveradi.
+  try {
+    const p = document.documentElement.requestFullscreen();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+  startOv.style.display = "none";
+  setTimeout(() => { examActive = true; }, 600);   // fullscreen o'tish hodisalari tinchigach
+  rerenderVisible();
+});
+
+function violation(reason) {
+  if (!examActive || blockedNow || submitting) return;
+  blockedNow = true; examActive = false;
+  // javoblar + bayroqlar bilan birga darhol serverga — vaqt SHU zahoti pauzaga olinadi
+  const payload = JSON.stringify({answers: ans, flags: [...flags], reason});
+  let sent = false;
+  try { sent = navigator.sendBeacon(CHEAT_URL, new Blob([payload], {type: "application/json"})); } catch (e) {}
+  if (!sent) fetch(CHEAT_URL, {method: "POST", headers: {"Content-Type": "application/json"},
+                               body: payload, keepalive: true}).catch(() => {});
+  showCheat();
+}
+function showCheat() {
+  document.getElementById("cheatOv").classList.add("show");
+  let sec = 10;
+  const el = document.getElementById("cheatSec");
+  const iv = setInterval(() => {
+    sec -= 1;
+    el.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(iv);
+      document.getElementById("cheatMain").style.display = "none";
+      document.getElementById("cheatWait").style.display = "block";
+      pollResume();
+    }
+  }, 1000);
+}
+function pollResume() {
+  const iv = setInterval(async () => {
+    try {
+      const r = await fetch(STATUS_URL);
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.submitted) { clearInterval(iv); location.href = {{ url_for('exam_result', eid=att.exam_id, aid=att.id)|tojson }}; return; }
+      if (!d.blocked) { clearInterval(iv); location.reload(); }   // admin ruxsat berdi — shu joydan davom
+    } catch (e) {}
+  }, 4000);
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) violation("boshqa oynaga o'tdi"); });
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) violation("to'liq ekrandan chiqdi"); });
+window.addEventListener("blur", () => {
+  setTimeout(() => { if (!document.hasFocus()) violation("fokus yo'qoldi"); }, 400);
+});
+</script>
+</body>
+</html>
