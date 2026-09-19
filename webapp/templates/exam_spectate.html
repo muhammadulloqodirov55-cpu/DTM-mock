@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Kuzatish — {{ att.student_name }}{% endblock %}
+{% block body %}
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div>
+      <h2 style="margin-bottom:2px">👁 {{ att.student_name }} <span class="muted" style="text-transform:none;letter-spacing:0">({{ att.klass }})</span></h2>
+      <span class="muted">{{ meta.title }} · {{ att.direction_name }} · Variant {{ att.variant|int }} · boshlagan: {{ att.started_at }}</span>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:ui-monospace,Consolas,monospace;font-weight:700;font-size:26px;letter-spacing:1px" id="specTimer">--:--</div>
+      <span class="muted" style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase">qolgan vaqt</span>
+    </div>
+  </div>
+  <p class="hint" style="margin:12px 0 0">Kuzatuvchi rejimi — faqat ko'rasiz, o'quvchi ishiga hech qanday ta'sir yo'q.
+  Ma'lumot har 3 soniyada yangilanadi. <a href="{{ url_for('exam_live') }}">← Jarayon sahifasiga qaytish</a></p>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+    <h2 style="margin:0">Holat: <span id="specStatus">yuklanmoqda…</span></h2>
+    <div>
+      <span class="muted" id="specCount">0/90</span>
+      <span class="muted" style="margin-left:14px">ruxsat: <b id="specRes">{{ att.resumes_used or 0 }}</b>/{{ max_resumes }}</span>
+      <button class="btn" id="specResume" style="display:none;margin-left:12px">Yana imkon berish</button>
+      <a class="btn sec" id="specResult" style="display:none;margin-left:8px" href="{{ url_for('exam_attempt_admin', eid=meta.id, aid=att.id) }}">Natijani ochish</a>
+    </div>
+  </div>
+  {% for a, b, name, pts in blocks %}
+  <div style="margin-top:14px;border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between">
+    <span style="font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase">{{ loop.index }}-bo'lim: {{ name }}</span>
+    <span style="font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--acc-deep);text-transform:uppercase">{{ a }}–{{ b }} · {{ pts }} ball</span>
+  </div>
+  <div class="sgrid">
+    {% for q in range(a, b + 1) %}
+    <div class="scell" id="sq{{ q }}"><span class="sn">{{ q }}</span><b class="sv" id="sv{{ q }}">·</b><span class="sf" id="sf{{ q }}">⚑</span></div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px;margin-top:10px}
+.scell{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:7px;padding:3px 7px;
+       font-size:12px;background:rgba(255,255,255,.5);transition:background .2s,border-color .2s}
+.scell .sn{color:var(--muted);font-weight:800;font-size:10.5px;min-width:16px;text-align:right}
+.scell .sv{font-size:13px}
+.scell .sf{display:none;color:var(--warn);font-size:11px;margin-left:auto}
+.scell.has{background:var(--ink);border-color:var(--ink);color:#fff}
+.scell.has .sn{color:#8b93a6}
+.scell.flg .sf{display:inline}
+</style>
+
+<script>
+"use strict";
+const DATA_URL = {{ url_for('exam_spectate_data', eid=meta.id, aid=att.id)|tojson }};
+const RESUME_URL = {{ url_for('exam_live_resume', eid=meta.id, aid=att.id)|tojson }};
+const MAXR = {{ max_resumes }};
+const N_Q = 90;
+const statusEl = document.getElementById("specStatus");
+const resumeBtn = document.getElementById("specResume");
+
+function fmtTime(s) {
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  return h + ":" + String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+}
+function setStatus(text, cls) {
+  statusEl.textContent = "";
+  const t = document.createElement("span");
+  t.className = "tag " + cls; t.textContent = text;
+  statusEl.appendChild(t);
+}
+async function poll() {
+  let d;
+  try { d = await (await fetch(DATA_URL)).json(); } catch (e) { return; }
+  for (let q = 1; q <= N_Q; q++) {
+    const cell = document.getElementById("sq" + q);
+    const v = d.answers[q];
+    document.getElementById("sv" + q).textContent = v || "·";
+    cell.classList.toggle("has", !!v);
+    cell.classList.toggle("flg", d.flags.includes(q));
+  }
+  document.getElementById("specCount").textContent = d.n + "/90";
+  document.getElementById("specRes").textContent = d.resumes_used;
+  document.getElementById("specTimer").textContent = d.submitted ? "—" : fmtTime(d.remaining_s);
+  resumeBtn.style.display = (d.blocked && d.resumes_used < MAXR) ? "inline-block" : "none";
+  document.getElementById("specResult").style.display = d.submitted ? "inline-block" : "none";
+  if (d.submitted) setStatus("yakunladi · " + (d.total ?? "?") + " ball", "ok");
+  else if (d.blocked) setStatus("to'xtatilgan · " + d.cheat_count + " marta buzilish", "nokey");
+  else setStatus("ishlamoqda", "flag");
+}
+resumeBtn.addEventListener("click", async () => {
+  resumeBtn.disabled = true;
+  try { await fetch(RESUME_URL, {method: "POST"}); } catch (e) {}
+  resumeBtn.disabled = false;
+  poll();
+});
+poll();
+setInterval(poll, 3000);
+</script>
+{% endblock %}

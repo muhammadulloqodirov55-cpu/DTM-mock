@@ -1,0 +1,27 @@
+{
+ "id": "4F429H",
+ "title": "Watta hall",
+ "duration_min": 180,
+ "scheduled_at": "",
+ "state": "open",
+ "created_at": "2026-09-19 20:28",
+ "directions": {
+  "1": {
+   "name": "Matematika – Ingliz tili",
+   "subjects": {
+    "m1": "Ona tili",
+    "m2": "Matematika",
+    "m3": "O'zbekiston tarixi",
+    "fan1": "Matematika",
+    "fan2": "Ingliz tili"
+   },
+   "code": "ENWFVS",
+   "variants": {
+    "01": {
+     "pdf": "d1_v01.pdf",
+     "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+   }
+  }
+ }
+}

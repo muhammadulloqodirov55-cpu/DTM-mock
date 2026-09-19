@@ -41,7 +41,7 @@
   <p class="hint">O'quvchi imtihon muhitidan chiqib ketgan: imtihoni to'xtatilgan, <b>vaqti pauzada</b>.
   «Yana imkon berish» bosilsa, qolgan vaqti bilan shu joyidan davom etadi.</p>
   <table>
-    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Necha marta</th><th>Belgilangan</th><th></th></tr></thead>
+    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Necha marta</th><th>Ruxsat</th><th>Belgilangan</th><th></th></tr></thead>
     <tbody>
     {% for a in blocked_atts %}
       <tr>
@@ -49,12 +49,17 @@
         <td>{{ a.klass or '—' }}</td>
         <td>{{ a.direction_name or '—' }}</td>
         <td><span class="tag nokey">{{ a.cheat_count }} marta</span></td>
+        <td>{{ a.resumes_used or 0 }}/{{ max_resumes }}</td>
         <td>{{ a.answers|length }}/90</td>
-        <td><form method="post" style="display:inline"><input type="hidden" name="action" value="resume"><input type="hidden" name="aid" value="{{ a.id }}"><button class="btn">Yana imkon berish</button></form></td>
+        <td>
+          <form method="post" style="display:inline"><input type="hidden" name="action" value="resume"><input type="hidden" name="aid" value="{{ a.id }}"><button class="btn">Yana imkon berish</button></form>
+          <a class="btn sec" href="{{ url_for('exam_spectate', eid=meta.id, aid=a.id) }}">Kuzatish</a>
+        </td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+  <p class="hint" style="margin:10px 0 0">Jonli ro'yxat va kuzatuv: <a href="{{ url_for('exam_live') }}">Imtihon jarayoni</a> sahifasida.</p>
 </div>
 {% endif %}
 

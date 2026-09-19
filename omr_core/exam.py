@@ -32,6 +32,7 @@ from typing import Optional
 
 from . import layout as L
 from . import scoring
+from . import settings as SETTINGS
 from .keys import normalize_variant, KeyError_
 from .results import ScanResult, QuestionResult
 
@@ -311,7 +312,7 @@ class ExamStore:
     def ready_directions(self, meta: dict) -> list[str]:
         return [did for did, d in meta.get("directions", {}).items() if self._ready_variants(d)]
 
-    def set_state(self, eid: str, state: str):
+    def set_state(self, eid: str, state: str, archived: bool = True):
         meta = self._load_or_raise(eid)
         if state not in ("draft", "open", "closed"):
             raise ExamError(state)
@@ -319,6 +320,9 @@ class ExamStore:
             raise ExamError("Ochish uchun kamida bitta yo'nalishda PDF ham, javoblar ham "
                             "to'liq kiritilgan variant bo'lishi kerak.")
         meta["state"] = state
+        if state == "closed":
+            # arxiv pauzada bo'lsa bu imtihon Arxiv sahifasida ko'rinmaydi
+            meta["archived"] = bool(archived)
         self._save_meta(meta)
         if state == "closed":
             # yakunlash: tugallanmagan (shu jumladan bloklangan) urinishlar avtomatik
@@ -363,8 +367,8 @@ class ExamStore:
                "direction": did, "direction_name": d["name"],
                "variant": variant, "started_ts": _now(), "started_at": _stamp(),
                "duration_min": meta["duration_min"], "answers": {}, "flags": [], "submitted": False,
-               "blocked": False, "blocked_at": 0.0, "cheat_count": 0, "paused_total_s": 0.0,
-               "token": secrets.token_hex(16)}
+               "blocked": False, "blocked_at": 0.0, "cheat_count": 0, "resumes_used": 0,
+               "paused_total_s": 0.0, "token": secrets.token_hex(16)}
         self._attempt_path(meta["id"], aid).write_text(json.dumps(att, ensure_ascii=False))
         return att
 
@@ -389,26 +393,39 @@ class ExamStore:
 
     # --- anti-cheat ---
     def block_attempt(self, att: dict, answers=None, flags=None) -> dict:
-        """Firibgarlik aniqlanganda: javoblar saqlanadi, vaqt pauzaga olinadi."""
+        """Firibgarlik aniqlanganda: javoblar saqlanadi, vaqt pauzaga olinadi.
+        Qayta ruxsat cheki (max_resumes) allaqachon ishlatib bo'lingan bo'lsa,
+        kutishning ma'nosi yo'q — urinish avtomatik yakunlanadi."""
         if att["submitted"] or att.get("blocked"):
             return att
         if answers is not None:
             att["answers"] = self._clean_answers(answers)
         if flags is not None:
             att["flags"] = self._clean_flags(flags)
+        att["cheat_count"] = att.get("cheat_count", 0) + 1
+        limit = SETTINGS.get_admin()["max_resumes"]
+        if att.get("resumes_used", 0) >= limit:
+            self._save_attempt(att)
+            return self.submit(att, auto=True,
+                               auto_note=f"Nazorat buzilishi ruxsat chekidan ({limit} marta) oshdi — "
+                                         f"imtihon avtomatik yakunlandi.")
         att["blocked"] = True
         att["blocked_at"] = _now()
-        att["cheat_count"] = att.get("cheat_count", 0) + 1
         self._save_attempt(att)
         return att
 
     def resume_attempt(self, eid: str, aid: str) -> dict:
-        """Admin 'yana imkon berish'ni bosdi: pauza vaqti muddatga qo'shiladi, davom etadi."""
+        """Admin 'yana imkon berish'ni bosdi: pauza vaqti muddatga qo'shiladi, davom etadi.
+        Har o'quvchiga imtihon davomida ko'pi bilan max_resumes marta beriladi."""
         att = self.load_attempt(eid, aid)
         if not att:
             raise ExamError("Urinish topilmadi.")
         if not att.get("blocked"):
             return att
+        limit = SETTINGS.get_admin()["max_resumes"]
+        if att.get("resumes_used", 0) >= limit:
+            raise ExamError(f"{att.get('student_name','')} uchun qayta ruxsat cheki ({limit} marta) tugagan.")
+        att["resumes_used"] = att.get("resumes_used", 0) + 1
         att["paused_total_s"] = att.get("paused_total_s", 0.0) + (_now() - att.get("blocked_at", _now()))
         att["blocked"] = False
         att["blocked_at"] = 0.0
@@ -453,9 +470,11 @@ class ExamStore:
         self._save_attempt(att)
         return att
 
-    def submit(self, att: dict, answers: dict | None = None, auto: bool = False) -> dict:
+    def submit(self, att: dict, answers: dict | None = None, auto: bool = False,
+               auto_note: str | None = None) -> dict:
         """Final submission -> DTM score by the attempt's DIRECTION subjects/key.
-        auto=True — admin imtihonni yakunlaganda serverning o'zi topshiradi."""
+        auto=True — server o'zi topshiradi (admin yakunlaganda yoki chek tugaganda);
+        auto_note — natija izohiga yoziladigan sabab matni."""
         if att["submitted"]:
             return att
         if att.get("blocked") and not auto:
@@ -481,7 +500,7 @@ class ExamStore:
         if late:
             report.warnings.append("Vaqt tugaganidan keyin topshirildi.")
         if auto:
-            report.warnings.append("Imtihon admin tomonidan yakunlandi.")
+            report.warnings.append(auto_note or "Imtihon admin tomonidan yakunlandi.")
         if att.get("cheat_count"):
             report.warnings.append(f"Nazorat buzilishi qayd etilgan: {att['cheat_count']} marta.")
         att["submitted"] = True

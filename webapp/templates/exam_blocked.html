@@ -6,9 +6,18 @@
 <title>To'xtatilgan — {{ meta.title }}</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#8f1710;color:#fff;
-     min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
-.in{max-width:520px}
+body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+     background:linear-gradient(180deg,#851309 0%,#98180e 100%);color:#fff;
+     min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;position:relative;overflow:hidden}
+/* qizil fon ortidagi xira DTM — shisha ortidan ko'rinadi */
+body::before{content:"DTM";position:fixed;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:clamp(280px,40vw,600px);
+  line-height:.73;letter-spacing:-.10em;color:#fff;opacity:.05;pointer-events:none;user-select:none}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.in{position:relative;z-index:1;max-width:540px;padding:36px 32px;border-radius:20px;animation:rise .5s ease both;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.26);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    box-shadow:0 40px 90px rgba(60,5,0,.5),inset 0 1.5px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(255,255,255,.07)}
 .t{font-size:11px;letter-spacing:3px;color:#ffb4ac;text-transform:uppercase;font-weight:700;margin-bottom:12px}
 h2{margin:0 0 12px;font-size:30px}
 p{font-size:15px;line-height:1.65;color:#ffd9d5;margin:0 0 8px}

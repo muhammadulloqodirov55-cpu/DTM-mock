@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Arxiv{% endblock %}
+{% block body %}
+<div class="card">
+  <h2>Arxiv — o'tkazilgan imtihonlar ({{ items|length }})</h2>
+  <p class="hint" style="margin-bottom:0">Yakunlangan imtihonlar va ularning to'liq natijalari.
+  Har bir o'quvchining balli, nazorat buzilishlari va izohlar shu yerda saqlanadi.
+  {% if not items %}<br><br><span class="muted">Hozircha arxiv bo'sh — imtihon yakunlanganda shu yerga tushadi.</span>{% endif %}</p>
+</div>
+
+{% for it in items %}
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div>
+      <h2 style="margin-bottom:2px">{{ it.meta.title }}</h2>
+      <span class="muted">{% if it.meta.scheduled_at %}{{ it.meta.scheduled_at }} · {% endif %}
+        Yaratilgan: {{ it.meta.created_at }} · {{ it.meta.duration_min }} daqiqa ·
+        qatnashchilar: {{ it.attempts|length }}</span>
+    </div>
+    <div style="white-space:nowrap">
+      {% if it.attempts %}
+      <a class="btn sec" href="{{ url_for('exam_export', eid=it.meta.id) }}">Excel</a>
+      <a class="btn sec" href="{{ url_for('exam_report_pdf', eid=it.meta.id) }}">PDF hisobot</a>
+      {% endif %}
+      <a class="btn sec" href="{{ url_for('exam_manage', eid=it.meta.id) }}">Tuzilish</a>
+    </div>
+  </div>
+  {% if not it.attempts %}
+  <p class="muted" style="margin-bottom:0">Bu imtihonda yakunlangan urinish yo'q.</p>
+  {% else %}
+  <table style="margin-top:12px">
+    <thead><tr><th>№</th><th>Sinf</th><th>Familiya Ism</th><th>Yo'nalish</th><th>Var.</th>
+      <th>Ball</th><th>%</th><th>Nazorat</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+    <tbody>
+    {% for a in it.attempts %}
+      <tr>
+        <td class="muted">{{ loop.index }}</td>
+        <td>{{ a.klass or '—' }}</td>
+        <td><b>{{ a.student_name }}</b></td>
+        <td class="muted">{{ a.direction_name or '—' }}</td>
+        <td>{{ a.variant|int }}</td>
+        <td><b>{{ a.report.total_points }}</b> <span class="muted">/ {{ a.report.max_points }}</span></td>
+        <td>{{ a.report.percent }}%</td>
+        <td>{% if a.cheat_count %}<span class="tag nokey">⚑ {{ a.cheat_count }} marta</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="muted">{{ (a.elapsed_s or 0) // 60 }} daq</td>
+        <td class="muted" style="max-width:220px;font-size:12.5px">{{ a.report.warnings|join('; ') or '—' }}</td>
+        <td style="white-space:nowrap">
+          <a class="btn sec" href="{{ url_for('exam_attempt_admin', eid=it.meta.id, aid=a.id) }}">Ochish</a>
+          <a class="btn sec" href="{{ url_for('exam_attempt_admin_pdf', eid=it.meta.id, aid=a.id) }}">PDF</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

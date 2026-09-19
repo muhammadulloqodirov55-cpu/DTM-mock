@@ -6,130 +6,166 @@
 <title>{{ meta.title }} — DTM Mock</title>
 <style>
 :root{
-  --ink:#111111; --paper:#f7f6f2; --card:#ffffff; --line:#e3e1da; --muted:#6b6f76;
-  --acc:#1a4fd6; --acc-soft:#e8eefc; --danger:#b3261e; --r:7px;
-  --amber:#f2b418; --amber-soft:#fbedc7; --amber-deep:#9a6b00;
+  --ink:#0a1020; --card:#ffffff; --line:rgba(132,154,184,.32); --muted:#59667a; --lbl:#425372;
+  --acc:#1469ff; --acc-deep:#0b56d7; --acc-soft:rgba(20,105,255,.09); --danger:#b3261e; --r:11px;
+  --amber:#f2b418; --amber-soft:rgba(242,180,24,.20); --amber-deep:#9a6b00;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);
-     display:flex;flex-direction:column;overflow:hidden}
-/* markaziy naqshli DTM foni + nozik to'r */
-body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='460'><defs><pattern id='p' width='9' height='9' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='0' y2='9' stroke='%23111111' stroke-width='2.4'/></pattern></defs><text x='500' y='320' text-anchor='middle' font-family='Georgia, serif' font-size='330' font-weight='bold' letter-spacing='26' fill='url(%23p)' stroke='%23111111' stroke-width='2.5' opacity='0.06'>DTM</text></svg>"),
-    repeating-linear-gradient(0deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(90deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px);
-  background-repeat:no-repeat,repeat,repeat;background-position:center center,0 0,0 0}
+body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+     background:linear-gradient(180deg,#fbfdff 0%,#f3f7fd 100%);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+/* shisha ortidagi ulkan DTM yozuvi (yuqori-markazda, panellar orqali ko'rinadi) */
+body::before{content:"DTM";position:fixed;z-index:0;left:44%;top:30%;transform:translate(-50%,-50%);
+  font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:clamp(280px,34vw,560px);
+  line-height:.73;letter-spacing:-.10em;color:#6b7a94;opacity:.16;pointer-events:none;user-select:none}
+/* burchaklardagi nozik egri chiziqlar */
+body::after{content:"";position:fixed;z-index:0;left:-560px;top:-460px;width:840px;height:840px;
+  border:1px solid rgba(26,79,214,.16);border-radius:50%;pointer-events:none;
+  box-shadow:1720px 1180px 0 -1px rgba(26,79,214,.13)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{transform:scale(1)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
-/* ---- yuqori panel ---- */
-#top{background:var(--ink);color:#fff;display:flex;align-items:center;gap:14px;padding:0 16px;height:56px;flex:0 0 auto;position:relative;z-index:2;min-width:0}
-#top .brand{font-weight:800;font-size:20px;letter-spacing:1px;flex:0 0 auto}
-#top .sep{width:1px;height:24px;background:rgba(255,255,255,.28);flex:0 0 auto}
-#top .title{font-weight:600;font-size:14.5px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26vw;flex:0 1 auto;min-width:0}
-#top .who{color:#9a9da3;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:18vw;flex:0 1 auto;min-width:0}
+/* ---- suzuvchi shisha yuqori panel ---- */
+#top{margin:14px 18px 0;height:62px;border-radius:16px;display:flex;align-items:center;gap:14px;padding:0 18px;
+     flex:0 0 auto;position:relative;z-index:3;min-width:0;color:var(--ink);
+     background:rgba(255,255,255,.55);border:1px solid rgba(145,164,190,.35);
+     -webkit-backdrop-filter:blur(14px) saturate(112%);backdrop-filter:blur(14px) saturate(112%);
+     box-shadow:0 16px 40px rgba(31,51,80,.12),0 4px 12px rgba(31,51,80,.06),
+       inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(101,122,150,.14);
+     animation:rise .45s ease both}
+#top .brand{font-weight:800;font-size:21px;letter-spacing:.5px;flex:0 0 auto;color:var(--ink)}
+#top .sep{width:1px;height:26px;background:rgba(10,16,32,.14);flex:0 0 auto}
+#top .title{font-weight:700;font-size:15px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26vw;flex:0 1 auto;min-width:0}
+#top .who{color:#7c8aa1;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:18vw;flex:0 1 auto;min-width:0}
 #timer{margin-left:auto;font-variant-numeric:tabular-nums;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
-       font-weight:700;font-size:26px;letter-spacing:2px;white-space:nowrap;flex:0 0 auto}
-#timer.low{color:#ff6b5e;animation:blink 1s step-end infinite}
+       font-weight:800;font-size:26px;letter-spacing:1px;white-space:nowrap;flex:0 0 auto;color:var(--ink)}
+#timer.low{color:#d63a2f;animation:blink 1s step-end infinite}
 @keyframes blink{50%{opacity:.5}}
-#saveState{font-size:10.5px;color:#9a9da3;letter-spacing:1px;text-transform:uppercase;width:70px;text-align:right;flex:0 0 auto}
-#finishBtn{background:var(--acc);color:#fff;border:0;border-radius:var(--r);padding:11px 26px;font-size:13px;font-weight:700;
-           letter-spacing:1.6px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s;flex:0 0 auto}
-#finishBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,79,214,.4)}
+#saveState{font-size:10.5px;color:#8b96ab;letter-spacing:1px;text-transform:uppercase;width:70px;text-align:right;flex:0 0 auto}
+#finishBtn{background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);color:#fff;border:0;border-radius:12px;padding:12px 28px;
+           font-size:13px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;cursor:pointer;
+           box-shadow:0 10px 24px rgba(20,105,255,.28),inset 0 1px 0 rgba(255,255,255,.28);
+           transition:transform .15s,box-shadow .15s;flex:0 0 auto}
+#finishBtn:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(20,105,255,.38)}
 #finishBtn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}
-/* ---- asosiy bo'linma ---- */
-#main{flex:1;display:flex;min-height:0;position:relative;z-index:1}
-#pdfSide{flex:1 1 62%;display:flex;flex-direction:column;min-width:0}
-#pdfBar{margin:14px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;align-items:center;gap:6px;
-        padding:6px 10px;flex:0 0 auto;box-shadow:0 2px 10px rgba(17,17,17,.06);animation:rise .45s ease both}
-#pdfBar button{background:transparent;border:1px solid transparent;border-radius:5px;padding:5px 11px;font-size:14px;cursor:pointer;
-               font-weight:600;color:var(--ink);transition:background .12s,border-color .12s}
-#pdfBar button:hover{background:var(--paper);border-color:var(--line)}
+/* ---- asosiy bo'linma: chapda PDF (keng), o'ngda tor javob paneli ---- */
+#main{flex:1;display:flex;min-height:0;position:relative;z-index:1;gap:16px;padding:0 18px}
+#pdfSide{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+#pdfBar{margin:14px auto 0;background:rgba(255,255,255,.62);border:1px solid rgba(145,164,190,.35);border-radius:13px;
+        display:flex;align-items:center;gap:6px;padding:6px 10px;flex:0 0 auto;
+        -webkit-backdrop-filter:blur(12px) saturate(110%);backdrop-filter:blur(12px) saturate(110%);
+        box-shadow:0 12px 30px rgba(31,53,83,.10),inset 0 1px 0 rgba(255,255,255,.92);animation:rise .45s ease both}
+#pdfBar button{background:transparent;border:1px solid transparent;border-radius:8px;padding:5px 11px;font-size:14px;cursor:pointer;
+               font-weight:600;color:var(--ink);transition:background .12s,border-color .12s,color .12s}
+#pdfBar button:hover{background:var(--acc-soft);border-color:rgba(20,105,255,.22);color:var(--acc-deep)}
 #pageInfo,#zoomInfo{font-size:11.5px;color:var(--muted);letter-spacing:1.2px;min-width:56px;text-align:center;font-weight:600}
-#pdfWrap{flex:1;overflow:auto;padding:16px 0 24px}
-.pgbox{margin:0 auto 16px;background:#fff;box-shadow:0 4px 0 rgba(17,17,17,.06),0 10px 28px rgba(17,17,17,.14);
-       position:relative;border:1px solid var(--line);animation:rise .5s ease both}
+#pdfWrap{flex:1;overflow:auto;padding:16px 4px 24px}
+.pgbox{margin:0 auto 16px;background:#fff;box-shadow:0 24px 54px rgba(31,53,83,.14),0 6px 16px rgba(31,53,83,.07);
+       position:relative;border:1px solid rgba(145,164,190,.30);border-radius:8px;overflow:hidden;animation:rise .5s ease both}
 .pgbox canvas{display:block;width:100%;height:100%}
-.pgnum{position:absolute;bottom:8px;right:10px;background:var(--ink);color:#fff;font-size:10px;letter-spacing:1px;padding:2px 8px}
-/* ---- javoblar paneli ---- */
-#ansSide{flex:0 0 38%;max-width:560px;min-width:340px;display:flex;flex-direction:column;background:rgba(255,255,255,.88);
-         border-left:1px solid var(--line);backdrop-filter:blur(2px);animation:rise .45s ease both}
-#ansHead{padding:14px 18px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.pgnum{position:absolute;bottom:8px;right:10px;background:var(--ink);color:#fff;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:5px}
+/* ---- o'ng: suzuvchi shisha javoblar paneli (tor) ---- */
+#ansSide{flex:0 0 25%;max-width:400px;min-width:315px;display:flex;flex-direction:column;
+         margin:14px 0 16px;border-radius:18px;overflow:hidden;
+         background:rgba(255,255,255,.55);border:1px solid rgba(145,164,190,.35);
+         -webkit-backdrop-filter:blur(14px) saturate(112%);backdrop-filter:blur(14px) saturate(112%);
+         box-shadow:0 22px 50px rgba(31,53,83,.13),0 6px 16px rgba(31,53,83,.06),
+           inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(101,122,150,.12);
+         animation:rise .45s ease both}
+#ansHead{padding:15px 16px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
 #ansHead .lbl{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:700;
-              letter-spacing:1.8px;text-transform:uppercase;color:var(--muted)}
-#ansHead .lbl b{color:var(--ink);font-size:13px;letter-spacing:1px}
-#pbarWrap{margin-top:8px;height:5px;background:#e9e7e0;border-radius:99px;overflow:hidden}
-#pbar{height:100%;width:0%;background:var(--ink);transition:width .35s ease}
-#ansGrid{flex:1;overflow-y:auto;padding:4px 18px 16px}
-.sectHdr{position:sticky;top:0;background:rgba(255,255,255,.97);z-index:2;display:flex;justify-content:space-between;align-items:baseline;
-         padding:14px 2px 7px;border-bottom:1.5px solid var(--ink);margin-bottom:10px}
-.sectHdr .nm{font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase}
-.sectHdr .pt{font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--acc);text-transform:uppercase}
-/* DTM varaqasidagidek: raqamlar USTUN bo'ylab oqadi (1-10, 11-20, 21-30) */
-.qcols{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px}
-.qcol{flex:1;min-width:158px;display:flex;flex-direction:column;gap:5px}
-.qrow{display:flex;align-items:center;gap:9px}
-/* savol raqami — tugma EMAS: alohida oddiy yozuv */
-.qn{width:24px;text-align:right;font-size:12.5px;font-weight:800;color:#b4b0a6;flex:0 0 auto;
+              letter-spacing:1.6px;text-transform:uppercase;color:var(--lbl)}
+#ansHead .lbl b{color:var(--ink);font-size:14px;letter-spacing:.5px}
+#pbarWrap{margin-top:9px;height:5px;background:rgba(20,105,255,.13);border-radius:99px;overflow:hidden}
+#pbar{height:100%;width:0%;background:linear-gradient(90deg,#2d7cff,#1267f4);transition:width .35s ease}
+#ansGrid{flex:1;overflow-y:auto;padding:2px 14px 14px}
+.sectHdr{position:sticky;top:0;background:rgba(250,252,255,.94);z-index:2;display:flex;justify-content:space-between;align-items:baseline;
+         gap:8px;padding:13px 2px 7px;border-bottom:1px solid var(--line);margin-bottom:9px;
+         -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.sectHdr .nm{font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink)}
+.sectHdr .pt{font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--acc);text-transform:uppercase;white-space:nowrap}
+/* savollar — reference'dagidek BITTA ustun bo'lib ketadi */
+.qcols{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.qcol{display:contents}
+.qrow{display:flex;align-items:center;gap:7px}
+.qn{width:22px;text-align:right;font-size:12.5px;font-weight:700;color:#8b96ab;flex:0 0 auto;
     font-variant-numeric:tabular-nums;transition:color .18s}
-.qrow.done .qn{color:var(--ink)}
-/* A-D — yaxlit segmentli guruh, raqamdan aniq ajralgan */
-.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;
-     transition:border-color .18s}
-.qrow.done .seg{border-color:var(--ink)}
-.bub{width:29px;height:25px;border:0;border-left:1px solid var(--line);background:transparent;font-size:11.5px;font-weight:700;
-     color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;
-     transition:background .12s,color .12s;padding:0}
-.bub:first-child{border-left:0}
-.bub:hover{background:var(--acc-soft);color:var(--acc)}
-.bub.sel{background:var(--ink);color:#fff;animation:pop .18s ease}
-/* "keyin ko'rib chiqaman" bayrog'i — sariq */
-.flag{width:22px;height:25px;border:1.5px solid transparent;border-radius:5px;background:transparent;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;padding:0;font-size:12px;color:#cfcabc;
+.qrow.done .qn{color:var(--acc-deep);font-weight:800}
+/* A-D — ALOHIDA yumaloq shisha "pill"lar; tanlangani to'q ko'k */
+.seg{display:flex;gap:6px;border:0;background:transparent}
+.bub{width:34px;height:30px;border:1px solid rgba(143,163,190,.45);border-radius:9px;
+     background:rgba(255,255,255,.55);font-size:12px;font-weight:700;color:var(--lbl);cursor:pointer;
+     display:flex;align-items:center;justify-content:center;user-select:none;padding:0;
+     box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 6px rgba(31,53,83,.05);
+     transition:background .12s,color .12s,border-color .12s,box-shadow .12s}
+.bub:hover{border-color:rgba(20,105,255,.55);color:var(--acc-deep);background:rgba(255,255,255,.9)}
+.bub.sel{background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);border-color:transparent;color:#fff;
+         box-shadow:0 6px 14px rgba(20,105,255,.35),inset 0 1px 0 rgba(255,255,255,.3);animation:pop .18s ease}
+/* "keyin ko'rib chiqaman" — P tugmasi, yoqilgani sariq */
+.flag{width:30px;height:30px;margin-left:auto;border:1px solid rgba(143,163,190,.40);border-radius:9px;
+      background:rgba(255,255,255,.45);cursor:pointer;display:flex;align-items:center;justify-content:center;
+      padding:0;font-size:11px;font-weight:800;color:#98a3b8;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
       transition:color .15s,background .15s,border-color .15s;flex:0 0 auto}
-.flag:hover{color:var(--amber);border-color:var(--amber-soft);background:var(--amber-soft)}
-.flag.on{background:var(--amber);border-color:var(--amber);color:var(--ink);animation:pop .18s ease}
+.flag:hover{color:var(--amber-deep);border-color:var(--amber);background:var(--amber-soft)}
+.flag.on{background:var(--amber);border-color:var(--amber);color:var(--ink);
+         box-shadow:0 5px 12px rgba(242,180,24,.35);animation:pop .18s ease}
 .qrow.flagged .qn{color:var(--amber-deep)}
-#legend{flex:0 0 auto;border-top:1px solid var(--line);padding:10px 18px;display:flex;gap:20px;font-size:10.5px;
-        letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:600}
-#legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-#legend .a i{background:var(--ink)}
-#legend .n i{background:#fff;border:1px solid var(--line)}
+#legend{flex:0 0 auto;border-top:1px solid var(--line);padding:11px 16px;display:flex;gap:14px;flex-wrap:wrap;
+        font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
+#legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#legend .a i{background:linear-gradient(180deg,#2d7cff,#1267f4)}
+#legend .n i{background:#fff;border:1px solid rgba(143,163,190,.6)}
 #legend .f i{background:var(--amber)}
 /* mobil */
 @media (max-width: 880px){
-  #main{flex-direction:column}
+  #main{flex-direction:column;padding:0 12px;gap:12px}
+  #top{margin:10px 12px 0}
   #pdfSide{flex:1 1 52%}
-  #ansSide{flex:1 1 48%;max-width:none;min-width:0;border-left:0;border-top:1px solid var(--line)}
+  #ansSide{flex:1 1 48%;max-width:none;min-width:0;margin:0 0 12px}
   #top .who,#top .sep:nth-of-type(2){display:none}
   #timer{font-size:20px}
 }
-/* tasdiqlash oynasi */
-#overlay{position:fixed;inset:0;background:rgba(17,17,17,.5);display:none;align-items:center;justify-content:center;z-index:50}
+/* tasdiqlash oynasi (shisha modal) */
+#overlay{position:fixed;inset:0;background:rgba(10,16,32,.45);display:none;align-items:center;justify-content:center;z-index:50;
+         -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 #overlay.show{display:flex}
-#overlay .box{background:#fff;border-radius:10px;padding:28px 30px;max-width:400px;text-align:center;border-top:4px solid var(--ink);
+#overlay .box{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.75);border-radius:18px;padding:28px 30px;max-width:400px;text-align:center;
+              -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+              box-shadow:0 34px 80px rgba(10,16,32,.30),inset 0 1.5px 0 rgba(255,255,255,.97);
               animation:rise .25s ease both}
 #overlay .box h3{margin:0 0 8px;letter-spacing:.3px}
 #overlay .box p{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.5}
 #overlay button{border:0;border-radius:var(--r);padding:12px 20px;font-size:12.5px;font-weight:700;letter-spacing:1.4px;
-                text-transform:uppercase;cursor:pointer;margin:0 5px;transition:transform .15s}
+                text-transform:uppercase;cursor:pointer;margin:0 5px;transition:transform .15s,box-shadow .15s}
 #overlay button:hover{transform:translateY(-1px)}
-#confirmYes{background:var(--acc);color:#fff}
-#confirmNo{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
-/* ---- boshlash ekrani: to'liq ekranga o'tish sharti ---- */
-#startOv{position:fixed;inset:0;background:var(--ink);z-index:80;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff}
-#startOv .in{max-width:480px;padding:24px;animation:rise .5s ease both}
-#startOv .t{font-size:11px;letter-spacing:3px;color:#9a9da3;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+#confirmYes{background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);color:#fff;
+            box-shadow:0 10px 22px rgba(20,105,255,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+#confirmNo{background:rgba(255,255,255,.7);color:var(--ink);border:1px solid rgba(122,145,174,.4)}
+/* ---- boshlash ekrani: qora qoladi, lekin ichi shisha kartochka ---- */
+#startOv{position:fixed;inset:0;background:rgba(7,11,22,.90);z-index:80;display:flex;align-items:center;justify-content:center;
+         text-align:center;color:#fff;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#startOv .in{max-width:500px;padding:38px 34px;border-radius:20px;animation:rise .5s ease both;
+             background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.22);
+             box-shadow:0 40px 90px rgba(0,0,0,.45),inset 0 1.5px 0 rgba(255,255,255,.25),
+               inset 0 -1px 0 rgba(255,255,255,.06)}
+#startOv .t{font-size:11px;letter-spacing:3px;color:#8b93a6;text-transform:uppercase;font-weight:700;margin-bottom:10px}
 #startOv h2{margin:0 0 10px;font-size:24px}
-#startOv p{color:#b9bcc2;font-size:14.5px;line-height:1.65;margin:0 0 24px}
+#startOv p{color:#aeb6c6;font-size:14.5px;line-height:1.65;margin:0 0 24px}
 #startOv b{color:#fff}
-#startBtn{background:var(--acc);color:#fff;border:0;border-radius:9px;padding:16px 34px;font-size:14px;font-weight:800;
-          letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s}
-#startBtn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(26,79,214,.5)}
-/* ---- firibgarlik ekrani ---- */
-#cheatOv{position:fixed;inset:0;background:#8f1710;z-index:90;display:none;align-items:center;justify-content:center;text-align:center;color:#fff}
+#startBtn{background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);color:#fff;border:0;border-radius:12px;padding:16px 34px;
+          font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;cursor:pointer;
+          box-shadow:0 17px 34px rgba(20,105,255,.35),inset 0 1px 0 rgba(255,255,255,.28);
+          transition:transform .15s,box-shadow .15s}
+#startBtn:hover{transform:translateY(-2px);box-shadow:0 22px 44px rgba(20,105,255,.48)}
+/* ---- firibgarlik ekrani: qizil qoladi, ichi shisha kartochka ---- */
+#cheatOv{position:fixed;inset:0;background:linear-gradient(180deg,#851309 0%,#98180e 100%);z-index:90;display:none;
+         align-items:center;justify-content:center;text-align:center;color:#fff}
 #cheatOv.show{display:flex}
-#cheatOv .in{max-width:520px;padding:24px}
+#cheatOv .in{max-width:540px;padding:36px 32px;border-radius:20px;
+             background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.26);
+             box-shadow:0 40px 90px rgba(60,5,0,.5),inset 0 1.5px 0 rgba(255,255,255,.28),
+               inset 0 -1px 0 rgba(255,255,255,.07)}
 #cheatOv h2{margin:0 0 12px;font-size:34px;letter-spacing:1px}
 #cheatOv p{font-size:15px;line-height:1.6;color:#ffd9d5;margin:0 0 10px}
 #cheatSec{font-size:56px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -185,7 +221,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
             <div class="seg">
               {% for o in ['A','B','C','D'] %}<button type="button" class="bub" data-q="{{ q }}" data-o="{{ o }}">{{ o }}</button>{% endfor %}
             </div>
-            <button type="button" class="flag" data-fq="{{ q }}" title="Keyin ko'rib chiqish uchun belgilash">⚑</button>
+            <button type="button" class="flag" data-fq="{{ q }}" title="Keyin ko'rib chiqish uchun belgilash">P</button>
           </div>
           {% endfor %}
         </div>
@@ -196,7 +232,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
     <div id="legend">
       <span class="a"><i></i>Belgilangan</span>
       <span class="n"><i></i>Belgilanmagan</span>
-      <span class="f"><i></i>Ko'rib chiqish (⚑)</span>
+      <span class="f"><i></i>Ko'rib chiqish (P)</span>
     </div>
   </div>
 </div>
@@ -378,7 +414,7 @@ const overlay = document.getElementById("overlay");
 finishBtn.addEventListener("click", () => {
   const blank = N_Q - Object.keys(ans).length;
   let t = blank ? blank + " ta savol belgilanmagan." : "Barcha savollar belgilangan.";
-  if (flags.size) t += " " + flags.size + " ta savol ko'rib chiqish uchun bayroqlangan (⚑).";
+  if (flags.size) t += " " + flags.size + " ta savol ko'rib chiqish uchun belgilangan (P).";
   document.getElementById("ovText").textContent = t + " Yakunlagach o'zgartirib bo'lmaydi.";
   overlay.classList.add("show");
 });

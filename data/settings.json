@@ -5,5 +5,10 @@
   "m3": "O'zbekiston tarixi",
   "fan1": "Kimyo",
   "fan2": "Biologiya"
+ },
+ "admin": {
+  "archive_paused": false,
+  "default_duration": 180,
+  "max_resumes": 2
  }
 }

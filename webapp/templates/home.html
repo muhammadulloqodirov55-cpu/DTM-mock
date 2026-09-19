@@ -2,98 +2,379 @@
 <html lang="uz">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DTM Mock Imtihon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DTM Mock — Imtihonga kirish</title>
 <style>
-:root{--ink:#111111;--paper:#f7f6f2;--line:#e3e1da;--muted:#6b6f76;--acc:#1a4fd6;--r:7px}
+:root{
+  --ink:#0a1020; --muted:#33455f; --blue:#1469ff; --blue-2:#287cff;
+  --glass-border:rgba(122,145,174,.28); --error:#b3261e;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);
-     min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='460'><defs><pattern id='p' width='9' height='9' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='0' y2='9' stroke='%23111111' stroke-width='2.4'/></pattern></defs><text x='500' y='320' text-anchor='middle' font-family='Georgia, serif' font-size='330' font-weight='bold' letter-spacing='26' fill='url(%23p)' stroke='%23111111' stroke-width='2.5' opacity='0.07'>DTM</text></svg>"),
-    repeating-linear-gradient(0deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(90deg, rgba(17,17,17,.025) 0 1px, transparent 1px 44px);
-  background-repeat:no-repeat,repeat,repeat;background-position:center center,0 0,0 0}
-@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:10px;
-      padding:40px 36px;max-width:440px;width:100%;box-shadow:0 18px 50px rgba(17,17,17,.12);position:relative;
-      animation:rise .5s ease both}
-.logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.logo .m{background:var(--ink);color:#fff;font-weight:800;font-size:18px;letter-spacing:1px;padding:6px 12px;border-radius:6px}
-.logo .t{font-size:10.5px;font-weight:700;letter-spacing:2.4px;color:var(--muted);text-transform:uppercase}
-h1{margin:0 0 6px;font-size:26px;letter-spacing:-.3px}
-p.sub{margin:0 0 26px;color:var(--muted);font-size:14.5px;line-height:1.55}
-label{display:block;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin:16px 0 7px}
-input,select{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r);font-size:16px;font-family:inherit;
-      background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
-input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,79,214,.14)}
-#code{text-transform:uppercase;letter-spacing:4px;font-weight:800;text-align:center;font-size:20px}
-button{width:100%;margin-top:26px;padding:14px;border:0;border-radius:var(--r);background:var(--acc);color:#fff;
-       font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;
-       transition:transform .15s,box-shadow .15s}
-button:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(26,79,214,.35)}
-.flash{background:#faeae8;color:#b3261e;padding:11px 14px;border-radius:var(--r);margin-bottom:14px;font-size:14px;font-weight:500;
-       animation:rise .3s ease both}
-.rules{margin-top:24px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.7}
-.rules b{color:var(--ink)}
+html,body{margin:0;width:100%;min-height:100%;background:#fff;color:var(--ink);
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{min-height:100vh;overflow:hidden}
+button,input{font:inherit}
+.page-shell{position:relative;min-height:100vh;width:100%;display:grid;place-items:center;overflow:hidden;isolation:isolate;
+  background:radial-gradient(circle at 50% 88%, rgba(41,92,170,.035), transparent 29%), #ffffff}
+/* Ulkan DTM — oynaning ortida haqiqiy matn */
+.background-word{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:max-content;
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(360px,42vw,650px);line-height:.73;letter-spacing:-.10em;
+  font-weight:700;color:#77849a;opacity:.76;user-select:none;pointer-events:none}
+.ambient{position:absolute;z-index:0;width:860px;height:860px;border:1px solid rgba(26,79,214,.22);border-radius:50%;pointer-events:none}
+.ambient-left{left:-570px;top:-470px}
+.ambient-right{right:-650px;bottom:-540px}
+/* ---- optik shisha kartochka ---- */
+.glass-card{position:relative;z-index:2;width:min(740px,calc(100vw - 48px));padding:70px 68px 58px;border-radius:20px;
+  isolation:isolate;background:rgba(255,255,255,.105);border:1px solid rgba(145,164,190,.32);
+  -webkit-backdrop-filter:blur(4.5px) saturate(108%) brightness(1.035);
+  backdrop-filter:blur(4.5px) saturate(108%) brightness(1.035);
+  box-shadow:0 34px 74px rgba(31,51,80,.16),0 8px 24px rgba(31,51,80,.075),
+    inset 0 1.5px 0 rgba(255,255,255,.94),inset 1.5px 0 0 rgba(255,255,255,.68),
+    inset 0 -1.5px 0 rgba(101,122,150,.22),inset -1.5px 0 0 rgba(101,122,150,.11);
+  overflow:visible;transform:translateZ(0);animation:cardEnter 700ms cubic-bezier(.2,.8,.2,1) both}
+.glass-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  border:1px solid rgba(255,255,255,.74);
+  box-shadow:inset 0 0 0 7px rgba(255,255,255,.075),inset 0 10px 22px rgba(255,255,255,.10),
+    inset 0 -9px 20px rgba(96,116,143,.045);z-index:4}
+.glass-card::after{content:"";position:absolute;inset:2px;border-radius:18px;pointer-events:none;z-index:0;
+  background:linear-gradient(116deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.11) 16%,rgba(255,255,255,.015) 37%,
+    rgba(255,255,255,0) 61%,rgba(255,255,255,.13) 100%),
+    radial-gradient(85% 36% at 50% 0%, rgba(255,255,255,.19), transparent 72%),
+    radial-gradient(45% 22% at 92% 90%, rgba(255,255,255,.11), transparent 72%);
+  opacity:.82;mix-blend-mode:screen}
+form{position:relative;z-index:5}
+h1{margin:0 0 42px;color:#070b12;font-size:clamp(42px,3.3vw,64px);line-height:.96;font-weight:800;letter-spacing:-.045em}
+.flash{position:relative;z-index:5;margin:-14px 0 26px;padding:13px 16px;border-radius:12px;font-size:15px;font-weight:500;
+  color:var(--error);background:rgba(179,38,30,.07);border:1px solid rgba(179,38,30,.25);animation:cardEnter .3s ease both}
+.field-block{margin-bottom:26px}
+.code-block{margin-bottom:30px}
+label{display:block;margin:0 0 10px 2px;color:#425372;font-size:15px;line-height:1;letter-spacing:.22em;font-weight:600}
+.input-wrap{position:relative;height:76px;border-radius:14px;border:1px solid rgba(143,163,190,.24);
+  background:rgba(255,255,255,.235);
+  -webkit-backdrop-filter:blur(3px) saturate(104%);backdrop-filter:blur(3px) saturate(104%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(99,121,151,.08),0 7px 20px rgba(31,53,83,.035);
+  transition:border-color 180ms ease,box-shadow 180ms ease,background 180ms ease,transform 180ms ease}
+.input-wrap:focus-within{border-color:rgba(20,105,255,.40);background:rgba(255,255,255,.31);
+  box-shadow:0 0 0 4px rgba(20,105,255,.065),inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(99,121,151,.08),0 9px 24px rgba(31,53,83,.045);transform:translateY(-1px)}
+input{width:100%;height:100%;border:0;outline:none;color:#0a0d14;background:transparent;padding:0 22px;font-size:28px;font-weight:500}
+input::placeholder{color:#9aa8bd}
+.code-wrap input{text-align:center;font-size:34px;letter-spacing:.26em;font-weight:500;padding-left:calc(22px + .26em);text-transform:uppercase}
+.error-text{min-height:0;margin:0;color:var(--error);font-size:13px;line-height:1.2;overflow:hidden;
+  transition:margin 180ms ease,min-height 180ms ease}
+.error-text:not(:empty){min-height:18px;margin:7px 0 -7px 2px}
+.input-wrap.invalid,.custom-select-trigger.invalid{border-color:rgba(179,38,30,.55)!important;
+  box-shadow:0 0 0 4px rgba(179,38,30,.08)!important;animation:shake 340ms ease}
+/* kod terilganda chiqadigan imtihon ma'lumot plashkasi */
+.exam-hint{display:none;margin:12px 2px 0;padding:13px 16px;border-radius:12px;font-size:16px;line-height:1.5;color:#1c2a42;
+  background:rgba(255,255,255,.55);border:1px solid rgba(132,154,184,.26);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 10px 26px rgba(31,53,83,.08),inset 0 1px 0 rgba(255,255,255,.88)}
+.exam-hint b{color:#070b12}
+.exam-hint .dir{color:#0b56d7;font-weight:650}
+/* ---- glass dropdown (SINF) ---- */
+.class-field{position:relative;z-index:30}
+.custom-select{position:relative;width:100%}
+.custom-select-trigger{width:100%;height:76px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 25px 0 22px;border:1px solid rgba(143,163,190,.24);border-radius:14px;outline:none;cursor:pointer;color:#0a0d14;
+  background:rgba(255,255,255,.235);
+  -webkit-backdrop-filter:blur(3px) saturate(104%);backdrop-filter:blur(3px) saturate(104%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(99,121,151,.08),0 7px 20px rgba(31,53,83,.035);
+  font-size:27px;font-weight:500;text-align:left;
+  transition:border-color 180ms ease,box-shadow 180ms ease,background 180ms ease,transform 180ms ease}
+.custom-select-trigger.placeholder{color:#9aa8bd}
+.custom-select-trigger:hover{background:rgba(255,255,255,.32)}
+.custom-select.is-open .custom-select-trigger,.custom-select-trigger:focus-visible{
+  border-color:rgba(20,105,255,.40);background:rgba(255,255,255,.31);
+  box-shadow:0 0 0 4px rgba(20,105,255,.065),inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(99,121,151,.08),0 9px 24px rgba(31,53,83,.045);transform:translateY(-1px)}
+.custom-chevron{width:13px;height:13px;flex:0 0 auto;border-right:2px solid #0a0d14;border-bottom:2px solid #0a0d14;
+  transform:translateY(-3px) rotate(45deg);transition:transform 220ms cubic-bezier(.2,.8,.2,1)}
+.custom-select.is-open .custom-chevron{transform:translateY(4px) rotate(225deg)}
+.custom-select-menu{position:absolute;z-index:80;top:calc(100% + 10px);left:0;right:0;padding:8px;
+  border:1px solid rgba(132,154,184,.26);border-radius:15px;background:rgba(255,255,255,.66);
+  -webkit-backdrop-filter:blur(22px) saturate(118%) brightness(1.03);
+  backdrop-filter:blur(22px) saturate(118%) brightness(1.03);
+  box-shadow:0 22px 48px rgba(31,53,83,.15),0 7px 18px rgba(31,53,83,.07),inset 0 1px 0 rgba(255,255,255,.88);
+  opacity:0;visibility:hidden;transform:translateY(-8px) scale(.988);transform-origin:top center;
+  transition:opacity 180ms ease,visibility 180ms ease,transform 220ms cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.custom-select.is-open .custom-select-menu{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.custom-option{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:0 14px 0 16px;border:0;border-radius:10px;outline:none;color:#111827;background:transparent;cursor:pointer;
+  font-size:20px;font-weight:500;text-align:left;transition:background 150ms ease,color 150ms ease,transform 150ms ease}
+.custom-option + .custom-option{margin-top:2px}
+.custom-option:hover,.custom-option.is-keyboard-active,.custom-option:focus-visible{background:rgba(20,105,255,.075);color:#0b56d7}
+.custom-option:active{transform:scale(.995)}
+.custom-option.is-selected{background:rgba(20,105,255,.115);color:#0b56d7;font-weight:650}
+.option-check{width:24px;height:24px;display:grid;place-items:center;border-radius:7px;color:#fff;background:#1469ff;
+  font-size:14px;font-weight:800;opacity:0;transform:scale(.75);transition:opacity 160ms ease,transform 160ms ease}
+.custom-option.is-selected .option-check{opacity:1;transform:scale(1)}
+/* ---- CTA ---- */
+.start-button{position:relative;width:100%;height:82px;margin-top:2px;border:0;border-radius:11px;cursor:pointer;overflow:hidden;
+  color:#fff;background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);
+  box-shadow:0 17px 34px rgba(20,105,255,.22),inset 0 1px 0 rgba(255,255,255,.25),inset 0 -1px 0 rgba(4,60,164,.14);
+  transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease}
+.start-button:hover{transform:translateY(-2px);box-shadow:0 22px 40px rgba(20,105,255,.29),inset 0 1px 0 rgba(255,255,255,.22)}
+.start-button:active{transform:translateY(0) scale(.995)}
+.start-button::before{content:"";position:absolute;top:-45%;left:-35%;width:28%;height:190%;transform:rotate(16deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.23),transparent);transition:left 560ms cubic-bezier(.2,.8,.2,1)}
+.start-button:hover::before{left:118%}
+.button-label{font-size:19px;letter-spacing:.18em;font-weight:500}
+.button-arrow{position:absolute;right:22%;top:50%;transform:translateY(-52%);font-size:34px;font-weight:300;transition:transform 180ms ease}
+.start-button:hover .button-arrow{transform:translate(7px,-52%)}
+.button-loader{display:none;position:absolute;top:50%;right:24px;width:20px;height:20px;margin-top:-10px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin 680ms linear infinite}
+.start-button.loading{pointer-events:none;filter:saturate(.9)}
+.start-button.loading .button-loader{display:block}
+.start-button.loading .button-arrow{opacity:0}
+.glass-card .glass-glint{position:absolute;z-index:3;top:3px;left:0;width:34%;height:3px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.96),transparent);filter:blur(.15px);opacity:0;
+  animation:glassGlint 7.5s ease-in-out 1.2s infinite}
+@keyframes glassGlint{0%,72%,100%{opacity:0;transform:translateX(-140%) skewX(-17deg)}78%{opacity:.38}
+  91%{opacity:.16;transform:translateX(250%) skewX(-17deg)}}
+@keyframes cardEnter{from{opacity:0;transform:translateY(24px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.glass-card .glass-glint{animation:none}}
+/* ---- mobil ---- */
+@media (max-width:820px){
+  body{overflow:auto}
+  .page-shell{min-height:100svh;padding:28px 18px}
+  .background-word{font-size:72vw;opacity:.48}
+  .glass-card{width:min(620px,100%);padding:48px 28px 36px;border-radius:18px}
+  h1{font-size:clamp(38px,10vw,54px);margin-bottom:36px}
+  .input-wrap{height:68px}
+  input{font-size:23px}
+  .code-wrap input{font-size:29px}
+  .custom-select-trigger{height:68px;font-size:23px}
+  .custom-option{min-height:46px;font-size:18px}
+  .start-button{height:74px}
+  .button-label{font-size:16px}
+  .button-arrow{right:13%}
+  .ambient{width:620px;height:620px}
+}
+@media (max-width:520px){
+  .glass-card{padding:38px 18px 26px}
+  label{font-size:12px}
+  .input-wrap{height:62px;border-radius:12px}
+  input{font-size:20px}
+  .code-wrap input{font-size:24px;letter-spacing:.20em}
+  .custom-select-trigger{height:62px;border-radius:12px;font-size:20px}
+  .custom-select-menu{border-radius:12px;padding:6px}
+  .custom-option{min-height:43px;font-size:17px;border-radius:9px}
+  .start-button{height:66px;border-radius:10px}
+  .button-label{font-size:13px;letter-spacing:.14em}
+  .button-arrow{right:7%;font-size:28px}
+}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo"><span class="m">DTM</span><span class="t">Mock imtihon platformasi</span></div>
-  <h1>Imtihonga kirish</h1>
-  <p class="sub">O'qituvchingiz bergan imtihon kodini va ism-familiyangizni kiriting.</p>
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% for cat, m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}
-  {% endwith %}
-  <form method="post" action="{{ url_for('exam_start') }}">
-    <label>Imtihon kodi</label>
-    <input id="code" name="code" maxlength="10" required autocomplete="off" placeholder="••••••">
-    <div id="examHint" style="display:none;margin-top:10px;padding:10px 13px;background:#f2f0ea;border-radius:7px;font-size:13.5px;line-height:1.5"></div>
-    <label>Familiya Ism</label>
-    <input name="student_name" required autocomplete="off" placeholder="Aliyev Ali">
-    <label>Sinf</label>
-    <select name="klass" required>
-      <option value="" disabled selected>— sinfni tanlang —</option>
-      {% for k in classes %}<option value="{{ k }}">{{ k }}</option>{% endfor %}
-    </select>
-    <button type="submit">Imtihonni boshlash</button>
-  </form>
-  <script>
-  "use strict";
-  // kod terilishi bilan imtihon nomi va YO'NALISHI ko'rsatiladi (kod = yo'nalish)
-  const codeEl = document.getElementById("code");
-  const hint = document.getElementById("examHint");
-  let lastCode = "", t = null;
-  codeEl.addEventListener("input", () => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const c = codeEl.value.trim().toUpperCase();
-      if (c.length < 4 || c === lastCode) { if (c.length < 4) hint.style.display = "none"; return; }
-      lastCode = c;
-      try {
-        const r = await fetch("{{ url_for('exam_info') }}?code=" + encodeURIComponent(c));
-        const d = await r.json();
-        if (d.ok) {
-          // innerHTML EMAS — imtihon nomi/yo'nalishi matn sifatida qo'yiladi (XSS 0%)
-          hint.textContent = "";
-          const t = document.createElement("b"); t.textContent = d.title;
-          const dir = document.createElement("b"); dir.textContent = d.direction;
-          hint.append(t, document.createElement("br"), "Yo'nalish: ", dir,
-                      " · " + (+d.duration || 0) + " daqiqa");
-          hint.style.display = "block";
-        } else {
-          hint.style.display = "none";
-        }
-      } catch (e) {}
-    }, 350);
+<main class="page-shell" aria-label="DTM Mock imtihonga kirish sahifasi">
+  <div class="ambient ambient-left" aria-hidden="true"></div>
+  <div class="ambient ambient-right" aria-hidden="true"></div>
+
+  <div class="background-word" aria-hidden="true">DTM</div>
+
+  <section class="glass-card" id="entryCard">
+    <span class="glass-glint" aria-hidden="true"></span>
+    <form id="examForm" method="post" action="{{ url_for('exam_start') }}" novalidate>
+      <h1>Imtihonga kirish</h1>
+
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, m in msgs %}<div class="flash" role="alert">{{ m }}</div>{% endfor %}
+      {% endwith %}
+
+      <div class="field-block code-block">
+        <label for="examCode">IMTIHON KODI</label>
+        <div class="input-wrap code-wrap">
+          <input id="examCode" name="code" type="text" maxlength="10" placeholder="AB0001"
+                 autocomplete="off" spellcheck="false" required aria-describedby="examCodeError">
+        </div>
+        <p class="error-text" id="examCodeError" role="alert"></p>
+        <div class="exam-hint" id="examHint"></div>
+      </div>
+
+      <div class="field-block">
+        <label for="fullName">FAMILIYA ISM</label>
+        <div class="input-wrap">
+          <input id="fullName" name="student_name" type="text" maxlength="60" placeholder="Aliyev Ali"
+                 autocomplete="name" required aria-describedby="nameError">
+        </div>
+        <p class="error-text" id="nameError" role="alert"></p>
+      </div>
+
+      <div class="field-block class-field">
+        <label id="classLabel">SINF</label>
+        <div class="custom-select" id="classSelect">
+          <input id="className" name="klass" type="hidden" value="">
+          <button class="custom-select-trigger placeholder" id="classSelectTrigger" type="button"
+                  aria-labelledby="classLabel classSelectValue" aria-haspopup="listbox" aria-expanded="false">
+            <span id="classSelectValue">— sinfni tanlang —</span>
+            <span class="custom-chevron" aria-hidden="true"></span>
+          </button>
+          <div class="custom-select-menu" id="classSelectMenu" role="listbox" aria-labelledby="classLabel" tabindex="-1">
+            {% for k in classes %}
+            <button class="custom-option" type="button" role="option" data-value="{{ k }}" aria-selected="false">
+              <span>{{ k }}</span><span class="option-check" aria-hidden="true">✓</span>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        <p class="error-text" id="classError" role="alert"></p>
+      </div>
+
+      <button class="start-button" id="startButton" type="submit">
+        <span class="button-label">IMTIHONNI BOSHLASH</span>
+        <span class="button-arrow" aria-hidden="true">→</span>
+        <span class="button-loader" aria-hidden="true"></span>
+      </button>
+
+    </form>
+  </section>
+</main>
+
+<script>
+"use strict";
+const form = document.getElementById("examForm");
+const examCode = document.getElementById("examCode");
+const fullName = document.getElementById("fullName");
+const className = document.getElementById("className");
+const classSelect = document.getElementById("classSelect");
+const classSelectTrigger = document.getElementById("classSelectTrigger");
+const classSelectValue = document.getElementById("classSelectValue");
+const classOptions = [...document.querySelectorAll(".custom-option")];
+const startButton = document.getElementById("startButton");
+const codeError = document.getElementById("examCodeError");
+const nameError = document.getElementById("nameError");
+const classError = document.getElementById("classError");
+const hint = document.getElementById("examHint");
+
+function setInvalid(el, msgEl, message) {
+  const wrap = el.closest(".input-wrap") || classSelectTrigger;
+  wrap.classList.add("invalid");
+  msgEl.textContent = message;
+}
+function clearInvalid(el, msgEl) {
+  const wrap = el.closest(".input-wrap") || classSelectTrigger;
+  wrap.classList.remove("invalid");
+  msgEl.textContent = "";
+}
+
+/* kod terilganda: tozalash + imtihon nomi/yo'nalishini ko'rsatish */
+let lastCode = "", hintTimer = null;
+examCode.addEventListener("input", () => {
+  const clean = examCode.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+  if (examCode.value !== clean) examCode.value = clean;
+  clearInvalid(examCode, codeError);
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(async () => {
+    const c = examCode.value.trim();
+    if (c.length < 4) { hint.style.display = "none"; lastCode = ""; return; }
+    if (c === lastCode) return;
+    lastCode = c;
+    try {
+      const r = await fetch("{{ url_for('exam_info') }}?code=" + encodeURIComponent(c));
+      const d = await r.json();
+      if (d.ok) {
+        hint.textContent = "";
+        const t = document.createElement("b"); t.textContent = d.title;
+        const dir = document.createElement("span"); dir.className = "dir"; dir.textContent = d.direction;
+        hint.append(t, document.createElement("br"), "Yo'nalish: ", dir, " · " + (+d.duration || 0) + " daqiqa");
+        hint.style.display = "block";
+      } else {
+        hint.style.display = "none";
+      }
+    } catch (e) {}
+  }, 350);
+});
+fullName.addEventListener("input", () => clearInvalid(fullName, nameError));
+
+/* ---- glass dropdown ---- */
+function openClassSelect() {
+  classSelect.classList.add("is-open");
+  classSelectTrigger.setAttribute("aria-expanded", "true");
+}
+function closeClassSelect({ focusTrigger = false } = {}) {
+  classSelect.classList.remove("is-open");
+  classSelectTrigger.setAttribute("aria-expanded", "false");
+  classOptions.forEach(o => o.classList.remove("is-keyboard-active"));
+  if (focusTrigger) classSelectTrigger.focus();
+}
+function selectClass(option, { close = true } = {}) {
+  className.value = option.dataset.value;
+  classSelectValue.textContent = option.dataset.value;
+  classSelectTrigger.classList.remove("placeholder", "invalid");
+  classError.textContent = "";
+  classOptions.forEach(item => {
+    const sel = item === option;
+    item.classList.toggle("is-selected", sel);
+    item.setAttribute("aria-selected", sel ? "true" : "false");
   });
-  </script>
-  <div class="rules">
-    <b>Imtihon tartibi:</b> 90 ta savol — 1–30 majburiy fanlar (1.1 ball), 31–60 asosiy fan (3.1 ball),
-    61–90 ikkinchi fan (2.1 ball). Maksimal <b>189.0 ball</b>. Vaqt tugashi bilan javoblar avtomatik
-    topshiriladi, natija darhol chiqadi.
-  </div>
-</div>
+  if (close) closeClassSelect({ focusTrigger: true });
+}
+function moveClassFocus(direction) {
+  const current = classOptions.findIndex(o => o.classList.contains("is-keyboard-active"));
+  const selected = classOptions.findIndex(o => o.classList.contains("is-selected"));
+  const base = current >= 0 ? current : selected;
+  const next = (base + direction + classOptions.length) % classOptions.length;
+  classOptions.forEach(o => o.classList.remove("is-keyboard-active"));
+  classOptions[next].classList.add("is-keyboard-active");
+  classOptions[next].focus({ preventScroll: true });
+}
+classSelectTrigger.addEventListener("click", () => {
+  classSelect.classList.contains("is-open") ? closeClassSelect() : openClassSelect();
+});
+classOptions.forEach(o => o.addEventListener("click", () => selectClass(o)));
+document.addEventListener("click", e => { if (!classSelect.contains(e.target)) closeClassSelect(); });
+classSelect.addEventListener("keydown", e => {
+  if (e.key === "Escape") { e.preventDefault(); closeClassSelect({ focusTrigger: true }); return; }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (!classSelect.classList.contains("is-open")) openClassSelect();
+    moveClassFocus(e.key === "ArrowDown" ? 1 : -1);
+    return;
+  }
+  if ((e.key === "Enter" || e.key === " ") && document.activeElement.classList.contains("custom-option")) {
+    e.preventDefault();
+    selectClass(document.activeElement);
+  }
+});
+
+/* ---- yuborish: tekshiruv o'tsa forma HAQIQIY submit bo'ladi (serverga POST) ---- */
+form.addEventListener("submit", (event) => {
+  const code = examCode.value.trim().toUpperCase();
+  const name = fullName.value.trim();
+  let valid = true;
+  if (!/^[A-Z0-9]{4,10}$/.test(code)) {
+    setInvalid(examCode, codeError, "Imtihon kodi 4–10 ta harf yoki raqamdan iborat bo'lsin.");
+    valid = false;
+  } else clearInvalid(examCode, codeError);
+  if (name.length < 3) {
+    setInvalid(fullName, nameError, "Familiya va ismingizni kiriting.");
+    valid = false;
+  } else clearInvalid(fullName, nameError);
+  if (!className.value) {
+    classSelectTrigger.classList.add("invalid");
+    classError.textContent = "Sinfni tanlang.";
+    valid = false;
+  }
+  if (!valid) { event.preventDefault(); return; }
+  startButton.classList.add("loading");   // forma o'z yo'lida serverga ketadi
+});
+
+/* nozik parallaks — faqat sichqonchali qurilmalarda */
+const card = document.getElementById("entryCard");
+if (window.matchMedia("(pointer: fine)").matches) {
+  document.addEventListener("mousemove", (event) => {
+    const x = (event.clientX / window.innerWidth - 0.5) * 1.2;
+    const y = (event.clientY / window.innerHeight - 0.5) * 1.2;
+    card.style.boxShadow = `
+      ${-x * 6}px ${24 - y * 5}px 65px rgba(27,48,78,.13),
+      ${-x * 2}px ${9 - y * 2}px 26px rgba(27,48,78,.08),
+      inset 0 1.5px 0 rgba(255,255,255,.94),
+      inset 0 -1.5px 0 rgba(101,122,150,.22)`;
+  });
+}
+</script>
 </body>
 </html>

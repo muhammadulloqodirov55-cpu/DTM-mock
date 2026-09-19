@@ -479,7 +479,8 @@ def exams_page():
         except (ExamError, ValueError) as e:
             flash(str(e), "err")
         return redirect(url_for("exams_page"))
-    return render_template("exams.html", items=exams.list())
+    return render_template("exams.html", items=exams.list(),
+                           default_duration=S.get_admin()["default_duration"])
 
 
 @app.route("/exams/<eid>", methods=["GET", "POST"])
@@ -513,7 +514,8 @@ def exam_manage(eid):
                 exams.delete_variant(eid, request.form["did"], request.form["variant"])
                 flash("Variant o'chirildi.", "ok")
             elif action == "state":
-                exams.set_state(eid, request.form["state"])
+                exams.set_state(eid, request.form["state"],
+                                archived=not S.get_admin()["archive_paused"])
                 flash({"open": "Imtihon ochildi — kodni o'quvchilarga bering.",
                        "closed": "Imtihon yakunlandi: tugallanmagan urinishlar avtomatik topshirildi.",
                        "draft": "Qoralamaga qaytarildi."}[request.form["state"]], "ok")
@@ -532,7 +534,8 @@ def exam_manage(eid):
         except KeyError:
             flash("Noto'g'ri so'rov.", "err")
         return redirect(url_for("exam_manage", eid=eid))
-    return render_template("exam_manage.html", meta=meta, attempts=exams.attempts(eid))
+    return render_template("exam_manage.html", meta=meta, attempts=exams.attempts(eid),
+                           max_resumes=S.get_admin()["max_resumes"])
 
 
 @app.route("/exams/<eid>/javoblar", methods=["GET", "POST"])
@@ -558,6 +561,100 @@ def exam_answers(eid):
             key_parts[f"{did}:{v}"] = split_key(info.get("key", ""))
     return render_template("exam_answers.html", meta=meta, key_parts=key_parts,
                            sizes=block_sizes())
+
+
+# ---------- IMTIHON JARAYONI (jonli kuzatuv, faqat ochiq imtihonlar) ----------
+
+def _attempt_row(att: dict) -> dict:
+    """Jonli jadval uchun bitta o'quvchining xavfsiz (kalitsiz) holati."""
+    return {
+        "aid": att["id"], "name": att.get("student_name", ""), "klass": att.get("klass", ""),
+        "direction": att.get("direction_name", ""), "variant": int(att.get("variant", "0") or 0),
+        "n": len(att.get("answers", {})), "flags": len(att.get("flags", [])),
+        "blocked": bool(att.get("blocked")), "submitted": bool(att.get("submitted")),
+        "cheat_count": att.get("cheat_count", 0), "resumes_used": att.get("resumes_used", 0),
+        "remaining_s": exams.remaining_s(att), "started_at": att.get("started_at", ""),
+        "total": (att.get("report") or {}).get("total_points") if att.get("submitted") else None,
+        "percent": (att.get("report") or {}).get("percent") if att.get("submitted") else None,
+    }
+
+
+@app.route("/jarayon")
+def exam_live():
+    items = [m for m in exams.list() if m["state"] == "open"]
+    return render_template("exam_live.html", items=items,
+                           max_resumes=S.get_admin()["max_resumes"])
+
+
+@app.route("/jarayon/<eid>/data")
+def exam_live_data(eid):
+    meta = exams.load(eid)
+    if not meta or meta["state"] != "open":
+        return jsonify({"ok": False, "closed": True})
+    rows = [_attempt_row(a) for a in exams.attempts(eid)]
+    # tartib: to'xtatilganlar tepada, keyin ishlayotganlar, oxirida yakunlaganlar
+    rows.sort(key=lambda r: (0 if r["blocked"] else (1 if not r["submitted"] else 2), r["name"].lower()))
+    return jsonify({"ok": True, "rows": rows})
+
+
+@app.route("/jarayon/<eid>/<aid>/resume", methods=["POST"])
+def exam_live_resume(eid, aid):
+    try:
+        att = exams.resume_attempt(eid, aid)
+    except ExamError as e:
+        return jsonify({"ok": False, "error": str(e)}), 409
+    return jsonify({"ok": True, "resumes_used": att.get("resumes_used", 0)})
+
+
+@app.route("/jarayon/<eid>/<aid>")
+def exam_spectate(eid, aid):
+    att = exams.load_attempt(eid, aid)
+    if not att:
+        abort(404)
+    meta = exams.load(eid)
+    subjects = meta["directions"].get(att.get("direction", ""), {}).get("subjects")
+    return render_template("exam_spectate.html", att=att, meta=meta,
+                           blocks=L.subject_blocks(subjects),
+                           max_resumes=S.get_admin()["max_resumes"])
+
+
+@app.route("/jarayon/<eid>/<aid>/data")
+def exam_spectate_data(eid, aid):
+    att = exams.load_attempt(eid, aid)
+    if not att:
+        abort(404)
+    return jsonify({"answers": att.get("answers", {}), "flags": att.get("flags", []),
+                    "blocked": bool(att.get("blocked")), "submitted": bool(att.get("submitted")),
+                    "remaining_s": exams.remaining_s(att),
+                    "cheat_count": att.get("cheat_count", 0),
+                    "resumes_used": att.get("resumes_used", 0),
+                    "n": len(att.get("answers", {})),
+                    "total": (att.get("report") or {}).get("total_points") if att.get("submitted") else None})
+
+
+# ---------- ARXIV (yakunlangan imtihonlar) ----------
+
+@app.route("/arxiv")
+def archive_page():
+    from omr_core.exam import _sorted_done
+    items = []
+    for m in exams.list():
+        if m["state"] == "closed" and m.get("archived", True):
+            items.append({"meta": m, "attempts": _sorted_done(exams.attempts(m["id"]))})
+    return render_template("archive.html", items=items)
+
+
+# ---------- SOZLAMALAR ----------
+
+@app.route("/sozlamalar", methods=["GET", "POST"])
+def admin_settings():
+    if request.method == "POST":
+        S.set_admin({"archive_paused": request.form.get("archive_paused") == "1",
+                     "default_duration": request.form.get("default_duration", 180),
+                     "max_resumes": request.form.get("max_resumes", 2)})
+        flash("Sozlamalar saqlandi.", "ok")
+        return redirect(url_for("admin_settings"))
+    return render_template("settings.html", s=S.get_admin())
 
 
 @app.route("/exams/<eid>/attempt/<aid>")

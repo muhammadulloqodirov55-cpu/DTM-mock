@@ -6,56 +6,81 @@
 <title>{% block title %}DTM Mock{% endblock %}</title>
 <style>
 :root{
-  --ink:#111111; --paper:#f7f6f2; --card:#ffffff; --line:#e3e1da; --txt:#111111; --muted:#6b6f76;
-  --acc:#1a4fd6; --acc-soft:#e8eefc; --ok:#1a4fd6; --ok-soft:#e8eefc;
-  --err:#b3261e; --err-soft:#faeae8; --warn:#8a5a00; --warn-soft:#fdf3e0;
-  --radius:9px;
+  --ink:#0a1020; --txt:#0a1020; --muted:#59667a; --lbl:#425372;
+  --acc:#1469ff; --acc-2:#2d7cff; --acc-deep:#0b56d7;
+  --acc-soft:rgba(20,105,255,.09); --ok:#1469ff; --ok-soft:rgba(20,105,255,.09);
+  --err:#b3261e; --err-soft:rgba(179,38,30,.08);
+  --warn:#8a5a00; --warn-soft:rgba(242,180,24,.16);
+  --line:rgba(132,154,184,.26); --radius:16px;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--txt);font-size:15px;line-height:1.5;position:relative}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='460'><defs><pattern id='p' width='9' height='9' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='0' y2='9' stroke='%23111111' stroke-width='2.4'/></pattern></defs><text x='500' y='320' text-anchor='middle' font-family='Georgia, serif' font-size='330' font-weight='bold' letter-spacing='26' fill='url(%23p)' stroke='%23111111' stroke-width='2.5' opacity='0.04'>DTM</text></svg>"),
-    repeating-linear-gradient(0deg, rgba(17,17,17,.02) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(90deg, rgba(17,17,17,.02) 0 1px, transparent 1px 44px);
-  background-repeat:no-repeat,repeat,repeat;background-position:center center,0 0,0 0}
+body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:#fff;color:var(--txt);font-size:15px;line-height:1.5;position:relative}
+/* orqa fondagi ulkan DTM (shisha ortidagi yozuv) + nozik doiralar */
+body::before{content:"DTM";position:fixed;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:clamp(300px,40vw,600px);
+  line-height:.73;letter-spacing:-.10em;color:#77849a;opacity:.10;pointer-events:none;user-select:none}
+body::after{content:"";position:fixed;z-index:0;left:-570px;top:-470px;width:860px;height:860px;
+  border:1px solid rgba(26,79,214,.14);border-radius:50%;pointer-events:none}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-header{background:var(--ink);color:#fff;padding:0 20px;display:flex;gap:2px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header{background:var(--ink);color:#fff;padding:0 20px;display:flex;gap:2px;align-items:center;flex-wrap:wrap;
+  position:sticky;top:0;z-index:5;box-shadow:0 10px 30px rgba(10,16,32,.18)}
 header .brand{font-weight:800;font-size:17px;color:#fff;text-decoration:none;padding:15px 14px 15px 0;letter-spacing:1px}
-header .brand span{color:#8fa8ee}
-header a.nav{color:#9a9da3;text-decoration:none;padding:16px 13px;border-bottom:2.5px solid transparent;font-weight:600;font-size:13px;letter-spacing:.6px;text-transform:uppercase;transition:color .15s}
+header .brand span{color:#7fa8ff}
+header a.nav{color:#98a3b6;text-decoration:none;padding:16px 13px;border-bottom:2.5px solid transparent;font-weight:600;
+  font-size:13px;letter-spacing:.6px;text-transform:uppercase;transition:color .15s}
 header a.nav:hover{color:#fff}
 header a.nav.active{color:#fff;border-bottom-color:var(--acc)}
-main{max-width:1150px;margin:24px auto;padding:0 16px;position:relative;z-index:1}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;animation:rise .4s ease both}
+main{max-width:1150px;margin:26px auto;padding:0 16px;position:relative;z-index:1}
+/* shisha kartochka */
+.card{position:relative;background:rgba(255,255,255,.62);border:1px solid var(--line);border-radius:var(--radius);
+  padding:24px;margin-bottom:18px;animation:rise .4s ease both;
+  -webkit-backdrop-filter:blur(14px) saturate(112%);backdrop-filter:blur(14px) saturate(112%);
+  box-shadow:0 18px 44px rgba(31,51,80,.09),0 5px 14px rgba(31,51,80,.05),
+    inset 0 1px 0 rgba(255,255,255,.92),inset 0 -1px 0 rgba(101,122,150,.10)}
 .card:nth-of-type(2){animation-delay:.06s}.card:nth-of-type(3){animation-delay:.12s}
-h2{margin:0 0 6px;font-size:12.5px;letter-spacing:2px;text-transform:uppercase}
+h2{margin:0 0 6px;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--lbl)}
 .hint{color:var(--muted);font-size:13.5px;margin:2px 0 14px}
 table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:middle}
-th{color:var(--muted);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;background:transparent}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:middle}
+th{color:var(--lbl);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;background:transparent}
 tr:last-child td{border-bottom:0}
-.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:7px;padding:9px 18px;cursor:pointer;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;transition:transform .13s,box-shadow .13s}
-.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,79,214,.3)}
-.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--ink)}
-.btn.sec:hover{box-shadow:0 4px 12px rgba(17,17,17,.15)}
-.btn.danger{background:var(--card);color:var(--err);border:1px solid var(--err)}
-.btn.danger:hover{box-shadow:0 4px 12px rgba(179,38,30,.2)}
-input[type=text],input[type=number],select,textarea{padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff;color:var(--txt);transition:border-color .15s,box-shadow .15s}
-input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,79,214,.13)}
+.btn{display:inline-block;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;text-decoration:none;
+  font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#fff;
+  background:linear-gradient(180deg,var(--acc-2) 0%,#1267f4 100%);
+  box-shadow:0 10px 22px rgba(20,105,255,.20),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .13s,box-shadow .13s,background .13s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(20,105,255,.26),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn.sec{background:rgba(255,255,255,.55);color:var(--ink);border:1px solid rgba(122,145,174,.38);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 6px 16px rgba(31,53,83,.06)}
+.btn.sec:hover{background:rgba(255,255,255,.78);box-shadow:0 8px 20px rgba(31,53,83,.10)}
+.btn.danger{background:rgba(255,255,255,.55);color:var(--err);border:1px solid rgba(179,38,30,.42);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 6px 16px rgba(31,53,83,.05)}
+.btn.danger:hover{background:rgba(179,38,30,.06);box-shadow:0 8px 18px rgba(179,38,30,.12)}
+input[type=text],input[type=number],select,textarea{padding:9px 12px;border:1px solid rgba(143,163,190,.34);
+  border-radius:10px;font-size:14px;font-family:inherit;background:rgba(255,255,255,.6);color:var(--txt);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+  transition:border-color .15s,box-shadow .15s,background .15s}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{outline:none;
+  border-color:rgba(20,105,255,.45);background:#fff;
+  box-shadow:0 0 0 4px rgba(20,105,255,.08),inset 0 1px 0 rgba(255,255,255,.92)}
 input[type=file]{font-size:14px}
-.flash{padding:11px 14px;border-radius:8px;margin-bottom:12px;font-weight:500;animation:rise .3s ease both}
-.flash.ok{background:var(--acc-soft);color:var(--acc)}
-.flash.err{background:var(--err-soft);color:var(--err)}
+.flash{padding:12px 15px;border-radius:12px;margin-bottom:12px;font-weight:500;animation:rise .3s ease both;
+  border:1px solid transparent;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.flash.ok{background:var(--ok-soft);color:var(--acc-deep);border-color:rgba(20,105,255,.22)}
+.flash.err{background:var(--err-soft);color:var(--err);border-color:rgba(179,38,30,.25)}
 .muted{color:var(--muted)}
-.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .tag.flag{background:var(--warn-soft);color:var(--warn)}
 .tag.nokey{background:var(--err-soft);color:var(--err)}
 .tag.ok{background:var(--ink);color:#fff}
 .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
 .row>div{display:flex;flex-direction:column;gap:5px}
-label{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:1.4px;text-transform:uppercase}
+label{font-size:10.5px;color:var(--lbl);font-weight:700;letter-spacing:1.6px;text-transform:uppercase}
 .big{font-size:34px;font-weight:800;color:var(--ink);line-height:1.1}
-code{background:#efede7;padding:1px 6px;border-radius:4px;font-size:13px}
+code{background:rgba(20,105,255,.07);color:var(--acc-deep);padding:1px 7px;border-radius:6px;font-size:13px}
 </style>
 <script>
 /* Dialogsiz ikki bosqichli tasdiqlash: birinchi bosishda tugma "Aniq o'chirilsinmi?"
@@ -75,11 +100,14 @@ function confirm2(form){
 <body>
 <header>
   <a class="brand" href="{{ url_for('exams_page') }}">DTM <span>MOCK</span></a>
-  <a class="nav {% if request.endpoint in ('exams_page', 'exam_manage') %}active{% endif %}" href="{{ url_for('exams_page') }}">Imtihonlar</a>
+  <a class="nav {% if request.endpoint in ('exams_page', 'exam_manage', 'exam_answers') %}active{% endif %}" href="{{ url_for('exams_page') }}">Imtihonlar</a>
+  <a class="nav {% if request.endpoint in ('exam_live', 'exam_spectate') %}active{% endif %}" href="{{ url_for('exam_live') }}">Imtihon jarayoni</a>
+  <a class="nav {% if request.endpoint == 'archive_page' %}active{% endif %}" href="{{ url_for('archive_page') }}">Arxiv</a>
+  <a class="nav {% if request.endpoint == 'admin_settings' %}active{% endif %}" href="{{ url_for('admin_settings') }}">Sozlamalar</a>
   <a class="nav" href="{{ url_for('home') }}" style="margin-left:auto">O'quvchi sahifasi ↗</a>
   {% if session.get('admin') %}
   <form method="post" action="{{ url_for('admin_logout') }}" style="margin:0">
-    <button class="nav" type="submit" style="background:none;border:0;border-bottom:2.5px solid transparent;cursor:pointer;font-family:inherit;padding:16px 13px;color:#9a9da3;font-weight:600;font-size:13px;letter-spacing:.6px;text-transform:uppercase">Chiqish</button>
+    <button class="nav" type="submit" style="background:none;border:0;border-bottom:2.5px solid transparent;cursor:pointer;font-family:inherit;padding:16px 13px;color:#98a3b6;font-weight:600;font-size:13px;letter-spacing:.6px;text-transform:uppercase">Chiqish</button>
   </form>
   {% endif %}
 </header>

@@ -69,6 +69,41 @@ def save(d: dict) -> None:
     SETTINGS_PATH.write_text(json.dumps(d, ensure_ascii=False, indent=1))
 
 
+# ---- admin boshqaruv sozlamalari (data/settings.json ichida "admin" kaliti) ----
+ADMIN_DEFAULTS = {
+    "archive_paused": False,     # True: yopilgan imtihonlar arxivga YOZILMAYDI
+    "default_duration": 180,     # yangi imtihon uchun standart davomiylik (daqiqa)
+    "max_resumes": 2,            # firibgarlikdan keyin "yana imkon berish" cheki (o'quvchi boshiga)
+}
+
+
+def _clean_admin(d: dict) -> dict:
+    out = dict(ADMIN_DEFAULTS)
+    out["archive_paused"] = bool(d.get("archive_paused", out["archive_paused"]))
+    try:
+        out["default_duration"] = max(5, min(600, int(d.get("default_duration", out["default_duration"]))))
+    except (TypeError, ValueError):
+        pass
+    try:
+        out["max_resumes"] = max(0, min(10, int(d.get("max_resumes", out["max_resumes"]))))
+    except (TypeError, ValueError):
+        pass
+    return out
+
+
+def get_admin() -> dict:
+    return _clean_admin(load().get("admin", {}))
+
+
+def set_admin(vals: dict) -> dict:
+    d = load()
+    cur = load().get("admin", {})
+    cur.update(vals)
+    d["admin"] = _clean_admin(cur)
+    save(d)
+    return d["admin"]
+
+
 def get_subjects() -> dict[str, str]:
     """Always returns all 5 slots (missing ones fall back to defaults)."""
     stored = load().get("subjects", {})

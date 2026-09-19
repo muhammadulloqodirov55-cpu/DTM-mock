@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Imtihon jarayoni{% endblock %}
+{% block body %}
+{% if not items %}
+<div class="card">
+  <h2>Imtihon jarayoni</h2>
+  <p class="muted" style="margin-bottom:0">Hozir ochiq imtihon yo'q. Imtihon ochilganda bu yerda
+  qatnashchilar jonli ko'rinadi; imtihon yakunlangach ma'lumotlar <a href="{{ url_for('archive_page') }}">Arxivga</a> o'tadi.</p>
+</div>
+{% endif %}
+
+{% for m in items %}
+<div class="card" data-eid="{{ m.id }}">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div>
+      <h2 style="margin-bottom:2px">{{ m.title }} <span class="tag ok" style="vertical-align:2px">jonli</span></h2>
+      <span class="muted">{% for did, d in (m.directions or {})|dictsort %}{{ d.name }} — <code>{{ d.code }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</span>
+    </div>
+    <div class="muted" style="font-size:12.5px">
+      <span data-role="stats">yuklanmoqda…</span>
+      <a class="btn sec" style="margin-left:10px" href="{{ url_for('exam_manage', eid=m.id) }}">Tuzilish</a>
+    </div>
+  </div>
+  <table style="margin-top:12px">
+    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Var.</th><th>Jarayon</th><th>Qolgan vaqt</th><th>Holat</th><th>Ruxsat</th><th></th></tr></thead>
+    <tbody data-role="rows"><tr><td colspan="9" class="muted">Yuklanmoqda…</td></tr></tbody>
+  </table>
+</div>
+{% endfor %}
+
+<script>
+"use strict";
+const MAXR = {{ max_resumes }};
+const cards = [...document.querySelectorAll(".card[data-eid]")];
+
+function fmtTime(s) {
+  if (s == null) return "—";
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+  return h + ":" + String(m).padStart(2, "0");
+}
+function tag(text, cls) {
+  const t = document.createElement("span");
+  t.className = "tag " + cls;
+  t.textContent = text;
+  return t;
+}
+function td(child) {
+  const c = document.createElement("td");
+  if (child instanceof Node) c.appendChild(child); else c.textContent = child;
+  return c;
+}
+
+async function refresh(card) {
+  const eid = card.dataset.eid;
+  let d;
+  try {
+    const r = await fetch(`/jarayon/${eid}/data`);
+    d = await r.json();
+  } catch (e) { return; }
+  if (!d.ok) {   // imtihon yopildi — sahifadan yo'qoladi
+    card.remove();
+    if (!document.querySelector(".card[data-eid]")) location.reload();
+    return;
+  }
+  const active = d.rows.filter(r => !r.submitted && !r.blocked).length;
+  const blocked = d.rows.filter(r => r.blocked).length;
+  const done = d.rows.filter(r => r.submitted).length;
+  card.querySelector('[data-role="stats"]').textContent =
+    `ishlamoqda: ${active} · to'xtatilgan: ${blocked} · yakunladi: ${done}`;
+  const tbody = card.querySelector('[data-role="rows"]');
+  tbody.textContent = "";
+  if (!d.rows.length) {
+    const tr = document.createElement("tr");
+    const c = td("Hali hech kim boshlamadi — kodni o'quvchilarga bering.");
+    c.colSpan = 9; c.className = "muted";
+    tr.appendChild(c); tbody.appendChild(tr);
+    return;
+  }
+  for (const r of d.rows) {
+    const tr = document.createElement("tr");
+    const nameB = document.createElement("b"); nameB.textContent = r.name;
+    tr.appendChild(td(nameB));
+    tr.appendChild(td(r.klass || "—"));
+    const dirC = td(r.direction || "—"); dirC.className = "muted"; tr.appendChild(dirC);
+    tr.appendChild(td(String(r.variant)));
+    tr.appendChild(td(r.n + "/90" + (r.flags ? " · ⚑" + r.flags : "")));
+    tr.appendChild(td(r.submitted ? "—" : fmtTime(r.remaining_s)));
+    if (r.submitted) tr.appendChild(td(tag("yakunladi · " + (r.total ?? "?"), "ok")));
+    else if (r.blocked) tr.appendChild(td(tag("to'xtatilgan · " + r.cheat_count + " marta", "nokey")));
+    else tr.appendChild(td(tag("ishlamoqda", "flag")));
+    tr.appendChild(td(r.resumes_used + "/" + MAXR));
+    const act = document.createElement("td");
+    act.style.whiteSpace = "nowrap";
+    const watch = document.createElement("a");
+    watch.className = "btn sec"; watch.textContent = "Kuzatish";
+    watch.href = `/jarayon/${eid}/${r.aid}`;
+    act.appendChild(watch);
+    if (r.blocked && r.resumes_used < MAXR) {
+      const btn = document.createElement("button");
+      btn.className = "btn"; btn.style.marginLeft = "6px";
+      btn.textContent = "Yana imkon berish";
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        try { await fetch(`/jarayon/${eid}/${r.aid}/resume`, {method: "POST"}); } catch (e) {}
+        refresh(card);
+      });
+      act.appendChild(btn);
+    }
+    tr.appendChild(act);
+    tbody.appendChild(tr);
+  }
+}
+
+function refreshAll() { cards.forEach(c => { if (document.contains(c)) refresh(c); }); }
+refreshAll();
+setInterval(refreshAll, 4000);
+</script>
+{% endblock %}

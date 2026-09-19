@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Sozlamalar{% endblock %}
+{% block body %}
+<form method="post">
+<div class="card">
+  <h2>Arxiv boshqaruvi</h2>
+  <p class="hint">Pauza yoqilsa, bundan keyin <b>yakunlanadigan</b> imtihonlar Arxiv sahifasiga yozilmaydi
+  (diskda o'chmaydi, faqat arxiv ro'yxatida ko'rinmaydi). Pauzagacha arxivlangan imtihonlar joyida qoladi.
+  Pauza olib tashlansa, keyingi yakunlanganlar yana arxivga tushadi.</p>
+  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;text-transform:none;letter-spacing:0">
+    <input type="checkbox" name="archive_paused" value="1" {% if s.archive_paused %}checked{% endif %}
+           style="width:19px;height:19px;accent-color:#1469ff">
+    <span>Arxivga yozishni <b>pauza</b> qilish</span>
+    {% if s.archive_paused %}<span class="tag nokey">hozir pauzada</span>
+    {% else %}<span class="tag ok">yozilmoqda</span>{% endif %}
+  </label>
+</div>
+
+<div class="card">
+  <h2>Imtihon boshqaruvi</h2>
+  <p class="hint">Bu qiymatlar yangi imtihonlarga va nazorat qoidalariga darhol ta'sir qiladi.</p>
+  <div class="row">
+    <div>
+      <label>Standart davomiylik (daqiqa)</label>
+      <input type="number" name="default_duration" value="{{ s.default_duration }}" min="5" max="600" style="width:130px">
+    </div>
+    <div>
+      <label>Qayta ruxsat cheki (har o'quvchiga)</label>
+      <input type="number" name="max_resumes" value="{{ s.max_resumes }}" min="0" max="10" style="width:130px">
+    </div>
+  </div>
+  <p class="hint" style="margin:10px 0 0">Qayta ruxsat cheki — firibgarlik aniqlanganda admin «Yana imkon berish»ni
+  necha marta bosa olishi. Chek tugagan o'quvchi yana qoidani buzsa, imtihoni <b>avtomatik yakunlanadi</b>
+  va natija izohiga yoziladi.</p>
+</div>
+
+<div class="card">
+  <button class="btn" type="submit">Saqlash</button>
+</div>
+</form>
+{% endblock %}

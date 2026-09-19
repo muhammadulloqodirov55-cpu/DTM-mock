@@ -12,7 +12,7 @@
     <div class="row">
       <div><label>Imtihon nomi</label><input type="text" name="title" required placeholder="DTM mock — shanba" style="min-width:280px"></div>
       <div><label>O'tkazish vaqti (ixtiyoriy)</label><input type="text" name="scheduled_at" placeholder="Shanba, 09:00" style="width:170px"></div>
-      <div><label>Davomiyligi (daqiqa)</label><input type="number" name="duration" value="180" min="5" max="600" style="width:110px"></div>
+      <div><label>Davomiyligi (daqiqa)</label><input type="number" name="duration" value="{{ default_duration or 180 }}" min="5" max="600" style="width:110px"></div>
       <div><button class="btn" type="submit">Yaratish</button></div>
     </div>
   </form>
