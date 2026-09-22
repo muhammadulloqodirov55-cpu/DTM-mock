@@ -3,9 +3,11 @@
 {% block body %}
 <div class="card">
   <h2>Arxiv — o'tkazilgan imtihonlar ({{ items|length }})</h2>
-  <p class="hint" style="margin-bottom:0">Yakunlangan imtihonlar va ularning to'liq natijalari.
-  Har bir o'quvchining balli, nazorat buzilishlari va izohlar shu yerda saqlanadi.
-  {% if not items %}<br><br><span class="muted">Hozircha arxiv bo'sh — imtihon yakunlanganda shu yerga tushadi.</span>{% endif %}</p>
+  <p class="hint" style="margin-bottom:0">Bu yerga imtihon Tuzilish sahifasidagi <b>«Imtihonni yakunlash»</b> tugmasi
+  bosilganda tushadi (tasdiqlash uchun tugma 2 marta bosiladi). Har bir o'quvchining balli, nazorat buzilishlari va
+  izohlar shu yerda saqlanadi. Diqqat: <b>«O'chirish»</b> imtihonni arxivga o'tkazmaydi — ro'yxatdan olib tashlaydi.
+  {% if not items %}<br><br><span class="muted">Hozircha arxiv bo'sh — hali birorta imtihon yakunlanmagan.
+  Ochiq imtihonlar jonli holda <a href="{{ url_for('exam_live') }}">Imtihon jarayoni</a>da turadi.</span>{% endif %}</p>
 </div>
 
 {% for it in items %}

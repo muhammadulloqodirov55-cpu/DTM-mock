@@ -125,3 +125,11 @@
 2026-09-19 23:16:19,755 CHEAT ip=127.0.0.1 exam=ZJC8HS student=Shisha Sinov marta=1
 2026-09-19 23:16:19,793 CHEAT ip=127.0.0.1 exam=ZJC8HS student=Shisha Sinov marta=1
 2026-09-19 23:21:38,007 CHEAT ip=127.0.0.1 exam=4F429H student=S A marta=1
+2026-09-22 18:09:59,877 LOGIN-OK ip=127.0.0.1 (yashirin kod)
+2026-09-22 18:09:59,956 LOGIN-OK ip=127.0.0.1
+2026-09-22 18:14:38,433 LOGIN-OK ip=127.0.0.1 (yashirin kod)
+2026-09-22 18:21:12,885 LOGIN-OK ip=127.0.0.1
+2026-09-22 18:38:25,094 LOGIN-OK ip=127.0.0.1
+2026-09-22 18:38:25,189 CHEAT ip=127.0.0.1 exam=UFQ7P2 student=Curl Sinov marta=1
+2026-09-22 18:39:05,072 CHEAT ip=127.0.0.1 exam=UFQ7P2 student=Salomov Sardor marta=1
+2026-09-22 18:39:07,393 CHEAT ip=127.0.0.1 exam=UFQ7P2 student=Salomov Sardor marta=2

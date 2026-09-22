@@ -73,7 +73,6 @@ def save(d: dict) -> None:
 ADMIN_DEFAULTS = {
     "archive_paused": False,     # True: yopilgan imtihonlar arxivga YOZILMAYDI
     "default_duration": 180,     # yangi imtihon uchun standart davomiylik (daqiqa)
-    "max_resumes": 2,            # firibgarlikdan keyin "yana imkon berish" cheki (o'quvchi boshiga)
 }
 
 
@@ -82,10 +81,6 @@ def _clean_admin(d: dict) -> dict:
     out["archive_paused"] = bool(d.get("archive_paused", out["archive_paused"]))
     try:
         out["default_duration"] = max(5, min(600, int(d.get("default_duration", out["default_duration"]))))
-    except (TypeError, ValueError):
-        pass
-    try:
-        out["max_resumes"] = max(0, min(10, int(d.get("max_resumes", out["max_resumes"]))))
     except (TypeError, ValueError):
         pass
     return out

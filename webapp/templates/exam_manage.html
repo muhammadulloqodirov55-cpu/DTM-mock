@@ -16,7 +16,7 @@
         <form method="post" style="display:inline"><input type="hidden" name="action" value="state"><input type="hidden" name="state" value="open"><button class="btn">Ochish</button></form>
         {% endif %}
         {% if meta.state == 'open' %}
-        <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="state"><input type="hidden" name="state" value="closed"><button class="btn sec">Imtihonni yakunlash</button></form>
+        <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="state"><input type="hidden" name="state" value="closed"><button class="btn sec" data-confirm="Yakunlash — yana bosing">Imtihonni yakunlash</button></form>
         {% endif %}
         <a class="btn sec" href="{{ url_for('exam_answers', eid=meta.id) }}">Javoblar sahifasi →</a>
         <form method="post" style="display:inline" onsubmit="return confirm2(this)"><input type="hidden" name="action" value="delete_exam"><button class="btn danger">O'chirish</button></form>
@@ -33,35 +33,6 @@
     </div>
   </form>
 </div>
-
-{% set blocked_atts = attempts|selectattr('blocked')|list %}
-{% if meta.state == 'open' and blocked_atts %}
-<div class="card" style="border:1.5px solid var(--err)">
-  <h2 style="color:var(--err)">⚑ Firib qilganlar — ruxsat kutmoqda ({{ blocked_atts|length }})</h2>
-  <p class="hint">O'quvchi imtihon muhitidan chiqib ketgan: imtihoni to'xtatilgan, <b>vaqti pauzada</b>.
-  «Yana imkon berish» bosilsa, qolgan vaqti bilan shu joyidan davom etadi.</p>
-  <table>
-    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Necha marta</th><th>Ruxsat</th><th>Belgilangan</th><th></th></tr></thead>
-    <tbody>
-    {% for a in blocked_atts %}
-      <tr>
-        <td><b>{{ a.student_name }}</b></td>
-        <td>{{ a.klass or '—' }}</td>
-        <td>{{ a.direction_name or '—' }}</td>
-        <td><span class="tag nokey">{{ a.cheat_count }} marta</span></td>
-        <td>{{ a.resumes_used or 0 }}/{{ max_resumes }}</td>
-        <td>{{ a.answers|length }}/90</td>
-        <td>
-          <form method="post" style="display:inline"><input type="hidden" name="action" value="resume"><input type="hidden" name="aid" value="{{ a.id }}"><button class="btn">Yana imkon berish</button></form>
-          <a class="btn sec" href="{{ url_for('exam_spectate', eid=meta.id, aid=a.id) }}">Kuzatish</a>
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  <p class="hint" style="margin:10px 0 0">Jonli ro'yxat va kuzatuv: <a href="{{ url_for('exam_live') }}">Imtihon jarayoni</a> sahifasida.</p>
-</div>
-{% endif %}
 
 <div class="card">
   <h2>Yo'nalishlar ({{ meta.directions|length }})</h2>
@@ -174,7 +145,7 @@
         <td class="muted">{{ a.direction_name or '—' }}</td>
         <td>{{ a.variant|int }}</td>
         <td class="muted">{{ a.started_at }}</td>
-        <td>{% if a.submitted %}<span class="tag ok">yakunlangan</span>{% elif a.blocked %}<span class="tag nokey">to'xtatilgan</span>{% else %}<span class="tag flag">jarayonda</span>{% endif %}</td>
+        <td>{% if a.submitted %}<span class="tag ok">yakunlangan</span>{% else %}<span class="tag flag">jarayonda</span>{% endif %}</td>
         <td>{% if a.submitted %}<b>{{ a.report.total_points }}</b> <span class="muted">({{ a.report.percent }}%)</span>{% else %}{{ a.answers|length }}/90{% endif %}</td>
         <td style="white-space:nowrap">
           {% if a.submitted %}

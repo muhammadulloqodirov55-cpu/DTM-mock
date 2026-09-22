@@ -32,7 +32,6 @@ from typing import Optional
 
 from . import layout as L
 from . import scoring
-from . import settings as SETTINGS
 from .keys import normalize_variant, KeyError_
 from .results import ScanResult, QuestionResult
 
@@ -176,15 +175,18 @@ class ExamStore:
         return out
 
     def delete(self, eid: str):
+        """Imtihonni ro'yxatdan olib tashlaydi, LEKIN yo'q qilmaydi: butun katalog
+        data/trash/ ga ko'chiriladi — adashib bosilganda natijalar qutqarib qolinadi."""
         import shutil
         eid = (eid or "").strip().upper()
-        # CODE_RE ".." kabi qiymatlarni ham rad etadi — rmtree hech qachon
-        # data/exams tashqarisiga chiqa olmaydi
+        # CODE_RE ".." kabi qiymatlarni ham rad etadi — data/exams tashqarisiga chiqilmaydi
         if not CODE_RE.fullmatch(eid):
             return
         d = self._dir(eid)
         if d.exists() and d.parent == self.root:
-            shutil.rmtree(d)
+            trash = self.root.parent / "trash"
+            trash.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(d), str(trash / f"{eid}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"))
 
     # ---------- yo'nalishlar ----------
     def add_direction(self, eid: str, subjects: dict | None, custom_code: str = "") -> dict:
@@ -367,8 +369,7 @@ class ExamStore:
                "direction": did, "direction_name": d["name"],
                "variant": variant, "started_ts": _now(), "started_at": _stamp(),
                "duration_min": meta["duration_min"], "answers": {}, "flags": [], "submitted": False,
-               "blocked": False, "blocked_at": 0.0, "cheat_count": 0, "resumes_used": 0,
-               "paused_total_s": 0.0, "token": secrets.token_hex(16)}
+               "cheat_count": 0, "paused_total_s": 0.0, "token": secrets.token_hex(16)}
         self._attempt_path(meta["id"], aid).write_text(json.dumps(att, ensure_ascii=False))
         return att
 
@@ -381,54 +382,26 @@ class ExamStore:
     def _save_attempt(self, att: dict):
         self._attempt_path(att["exam_id"], att["id"]).write_text(json.dumps(att, ensure_ascii=False))
 
-    # --- timing (blok paytida vaqt MUZLAYDI) ---
+    # --- timing ---
     @staticmethod
     def _deadline(att: dict) -> float:
         return att["started_ts"] + att["duration_min"] * 60 + att.get("paused_total_s", 0.0)
 
     def remaining_s(self, att: dict) -> int:
-        if att.get("blocked"):
-            return max(0, int(self._deadline(att) - att.get("blocked_at", _now())))
         return max(0, int(self._deadline(att) - _now()))
 
     # --- anti-cheat ---
-    def block_attempt(self, att: dict, answers=None, flags=None) -> dict:
-        """Firibgarlik aniqlanganda: javoblar saqlanadi, vaqt pauzaga olinadi.
-        Qayta ruxsat cheki (max_resumes) allaqachon ishlatib bo'lingan bo'lsa,
-        kutishning ma'nosi yo'q — urinish avtomatik yakunlanadi."""
-        if att["submitted"] or att.get("blocked"):
+    def record_violation(self, att: dict, answers=None, flags=None) -> dict:
+        """Nazorat buzilishi (fullscreen/tab tark etildi): BLOKLAMAYMIZ — buzilish
+        sanaladi, javoblar saqlanadi; o'quvchi ogohlantirishni ko'rib o'z joyidan
+        davom etadi. Soni natija izohida va admin jonli sahifasida ko'rinadi."""
+        if att["submitted"]:
             return att
         if answers is not None:
             att["answers"] = self._clean_answers(answers)
         if flags is not None:
             att["flags"] = self._clean_flags(flags)
         att["cheat_count"] = att.get("cheat_count", 0) + 1
-        limit = SETTINGS.get_admin()["max_resumes"]
-        if att.get("resumes_used", 0) >= limit:
-            self._save_attempt(att)
-            return self.submit(att, auto=True,
-                               auto_note=f"Nazorat buzilishi ruxsat chekidan ({limit} marta) oshdi — "
-                                         f"imtihon avtomatik yakunlandi.")
-        att["blocked"] = True
-        att["blocked_at"] = _now()
-        self._save_attempt(att)
-        return att
-
-    def resume_attempt(self, eid: str, aid: str) -> dict:
-        """Admin 'yana imkon berish'ni bosdi: pauza vaqti muddatga qo'shiladi, davom etadi.
-        Har o'quvchiga imtihon davomida ko'pi bilan max_resumes marta beriladi."""
-        att = self.load_attempt(eid, aid)
-        if not att:
-            raise ExamError("Urinish topilmadi.")
-        if not att.get("blocked"):
-            return att
-        limit = SETTINGS.get_admin()["max_resumes"]
-        if att.get("resumes_used", 0) >= limit:
-            raise ExamError(f"{att.get('student_name','')} uchun qayta ruxsat cheki ({limit} marta) tugagan.")
-        att["resumes_used"] = att.get("resumes_used", 0) + 1
-        att["paused_total_s"] = att.get("paused_total_s", 0.0) + (_now() - att.get("blocked_at", _now()))
-        att["blocked"] = False
-        att["blocked_at"] = 0.0
         self._save_attempt(att)
         return att
 
@@ -460,8 +433,6 @@ class ExamStore:
     def save_answers(self, att: dict, answers: dict, flags=None) -> dict:
         if att["submitted"]:
             raise ExamError("Bu urinish allaqachon yakunlangan.")
-        if att.get("blocked"):
-            raise ExamError("Urinish bloklangan — admin ruxsatini kuting.")
         if self.remaining_s(att) <= 0 and _now() > self._deadline(att) + 120:
             raise ExamError("Vaqt tugagan.")
         att["answers"] = self._clean_answers(answers)
@@ -477,8 +448,6 @@ class ExamStore:
         auto_note — natija izohiga yoziladigan sabab matni."""
         if att["submitted"]:
             return att
-        if att.get("blocked") and not auto:
-            raise ExamError("Urinish bloklangan — admin ruxsatini kuting.")
         late = (not auto) and _now() > self._deadline(att) + 120
         if answers is not None and not late:
             att["answers"] = self._clean_answers(answers)
@@ -504,8 +473,6 @@ class ExamStore:
         if att.get("cheat_count"):
             report.warnings.append(f"Nazorat buzilishi qayd etilgan: {att['cheat_count']} marta.")
         att["submitted"] = True
-        att["blocked"] = False
-        att["blocked_at"] = 0.0
         att["finished_at"] = _stamp()
         att["elapsed_s"] = max(0, int(min(_now(), self._deadline(att)) - att["started_ts"] - att.get("paused_total_s", 0.0)))
         att["report"] = report.to_dict()

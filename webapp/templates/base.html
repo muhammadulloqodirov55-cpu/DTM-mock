@@ -91,7 +91,7 @@ function confirm2(form){
   if (btn.dataset.armed) return true;
   btn.dataset.armed = '1';
   btn.dataset.orig = btn.textContent;
-  btn.textContent = "Aniq o'chirilsinmi?";
+  btn.textContent = btn.dataset.confirm || "Aniq o'chirilsinmi?";
   setTimeout(function(){ btn.textContent = btn.dataset.orig; delete btn.dataset.armed; }, 3000);
   return false;
 }

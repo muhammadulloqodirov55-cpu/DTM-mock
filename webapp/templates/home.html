@@ -12,19 +12,21 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;min-height:100%;background:#fff;color:var(--ink);
   font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-body{min-height:100vh;overflow:hidden}
+/* balandlik yetmasa sahifa skroll bo'ladi — karta hech qachon qirqilmaydi */
+body{min-height:100vh;overflow-x:hidden;overflow-y:auto}
 button,input{font:inherit}
 .page-shell{position:relative;min-height:100vh;width:100%;display:grid;place-items:center;overflow:hidden;isolation:isolate;
   background:radial-gradient(circle at 50% 88%, rgba(41,92,170,.035), transparent 29%), #ffffff}
 /* Ulkan DTM — oynaning ortida haqiqiy matn */
 .background-word{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:max-content;
-  font-family:Georgia,"Times New Roman",serif;font-size:clamp(360px,42vw,650px);line-height:.73;letter-spacing:-.10em;
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(200px,40vw,560px);line-height:.73;letter-spacing:-.10em;
+  padding-right:.12em; /* manfiy letter-spacing oxirgi M harfini qirqmasin */
   font-weight:700;color:#77849a;opacity:.76;user-select:none;pointer-events:none}
 .ambient{position:absolute;z-index:0;width:860px;height:860px;border:1px solid rgba(26,79,214,.22);border-radius:50%;pointer-events:none}
 .ambient-left{left:-570px;top:-470px}
 .ambient-right{right:-650px;bottom:-540px}
 /* ---- optik shisha kartochka ---- */
-.glass-card{position:relative;z-index:2;width:min(740px,calc(100vw - 48px));padding:70px 68px 58px;border-radius:20px;
+.glass-card{position:relative;z-index:2;width:min(520px,calc(100vw - 48px));padding:42px 40px 34px;border-radius:18px;
   isolation:isolate;background:rgba(255,255,255,.105);border:1px solid rgba(145,164,190,.32);
   -webkit-backdrop-filter:blur(4.5px) saturate(108%) brightness(1.035);
   backdrop-filter:blur(4.5px) saturate(108%) brightness(1.035);
@@ -43,13 +45,13 @@ button,input{font:inherit}
     radial-gradient(45% 22% at 92% 90%, rgba(255,255,255,.11), transparent 72%);
   opacity:.82;mix-blend-mode:screen}
 form{position:relative;z-index:5}
-h1{margin:0 0 42px;color:#070b12;font-size:clamp(42px,3.3vw,64px);line-height:.96;font-weight:800;letter-spacing:-.045em}
+h1{margin:0 0 28px;color:#070b12;font-size:clamp(28px,2.4vw,36px);line-height:1;font-weight:800;letter-spacing:-.035em}
 .flash{position:relative;z-index:5;margin:-14px 0 26px;padding:13px 16px;border-radius:12px;font-size:15px;font-weight:500;
   color:var(--error);background:rgba(179,38,30,.07);border:1px solid rgba(179,38,30,.25);animation:cardEnter .3s ease both}
-.field-block{margin-bottom:26px}
-.code-block{margin-bottom:30px}
-label{display:block;margin:0 0 10px 2px;color:#425372;font-size:15px;line-height:1;letter-spacing:.22em;font-weight:600}
-.input-wrap{position:relative;height:76px;border-radius:14px;border:1px solid rgba(143,163,190,.24);
+.field-block{margin-bottom:18px}
+.code-block{margin-bottom:20px}
+label{display:block;margin:0 0 8px 2px;color:#425372;font-size:11.5px;line-height:1;letter-spacing:.2em;font-weight:700;text-transform:uppercase}
+.input-wrap{position:relative;height:56px;border-radius:12px;border:1px solid rgba(143,163,190,.24);
   background:rgba(255,255,255,.235);
   -webkit-backdrop-filter:blur(3px) saturate(104%);backdrop-filter:blur(3px) saturate(104%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(99,121,151,.08),0 7px 20px rgba(31,53,83,.035);
@@ -57,16 +59,16 @@ label{display:block;margin:0 0 10px 2px;color:#425372;font-size:15px;line-height
 .input-wrap:focus-within{border-color:rgba(20,105,255,.40);background:rgba(255,255,255,.31);
   box-shadow:0 0 0 4px rgba(20,105,255,.065),inset 0 1px 0 rgba(255,255,255,.92),
     inset 0 -1px 0 rgba(99,121,151,.08),0 9px 24px rgba(31,53,83,.045);transform:translateY(-1px)}
-input{width:100%;height:100%;border:0;outline:none;color:#0a0d14;background:transparent;padding:0 22px;font-size:28px;font-weight:500}
+input{width:100%;height:100%;border:0;outline:none;color:#0a0d14;background:transparent;padding:0 16px;font-size:17px;font-weight:500}
 input::placeholder{color:#9aa8bd}
-.code-wrap input{text-align:center;font-size:34px;letter-spacing:.26em;font-weight:500;padding-left:calc(22px + .26em);text-transform:uppercase}
+.code-wrap input{text-align:center;font-size:21px;letter-spacing:.22em;font-weight:600;padding-left:calc(16px + .22em);text-transform:uppercase}
 .error-text{min-height:0;margin:0;color:var(--error);font-size:13px;line-height:1.2;overflow:hidden;
   transition:margin 180ms ease,min-height 180ms ease}
 .error-text:not(:empty){min-height:18px;margin:7px 0 -7px 2px}
 .input-wrap.invalid,.custom-select-trigger.invalid{border-color:rgba(179,38,30,.55)!important;
   box-shadow:0 0 0 4px rgba(179,38,30,.08)!important;animation:shake 340ms ease}
 /* kod terilganda chiqadigan imtihon ma'lumot plashkasi */
-.exam-hint{display:none;margin:12px 2px 0;padding:13px 16px;border-radius:12px;font-size:16px;line-height:1.5;color:#1c2a42;
+.exam-hint{display:none;margin:10px 2px 0;padding:11px 14px;border-radius:11px;font-size:13.5px;line-height:1.5;color:#1c2a42;
   background:rgba(255,255,255,.55);border:1px solid rgba(132,154,184,.26);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 10px 26px rgba(31,53,83,.08),inset 0 1px 0 rgba(255,255,255,.88)}
@@ -75,12 +77,12 @@ input::placeholder{color:#9aa8bd}
 /* ---- glass dropdown (SINF) ---- */
 .class-field{position:relative;z-index:30}
 .custom-select{position:relative;width:100%}
-.custom-select-trigger{width:100%;height:76px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 25px 0 22px;border:1px solid rgba(143,163,190,.24);border-radius:14px;outline:none;cursor:pointer;color:#0a0d14;
+.custom-select-trigger{width:100%;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 0 16px;border:1px solid rgba(143,163,190,.24);border-radius:12px;outline:none;cursor:pointer;color:#0a0d14;
   background:rgba(255,255,255,.235);
   -webkit-backdrop-filter:blur(3px) saturate(104%);backdrop-filter:blur(3px) saturate(104%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(99,121,151,.08),0 7px 20px rgba(31,53,83,.035);
-  font-size:27px;font-weight:500;text-align:left;
+  font-size:17px;font-weight:500;text-align:left;
   transition:border-color 180ms ease,box-shadow 180ms ease,background 180ms ease,transform 180ms ease}
 .custom-select-trigger.placeholder{color:#9aa8bd}
 .custom-select-trigger:hover{background:rgba(255,255,255,.32)}
@@ -99,9 +101,15 @@ input::placeholder{color:#9aa8bd}
   opacity:0;visibility:hidden;transform:translateY(-8px) scale(.988);transform-origin:top center;
   transition:opacity 180ms ease,visibility 180ms ease,transform 220ms cubic-bezier(.2,.8,.2,1);overflow:hidden}
 .custom-select.is-open .custom-select-menu{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
-.custom-option{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+/* pastda joy yetmasa menyu TEPAGA ochiladi (oxirgi variant kesilib qolmasin) */
+.custom-select.up .custom-select-menu{top:auto;bottom:calc(100% + 10px);transform-origin:bottom center;
+  transform:translateY(8px) scale(.988)}
+.custom-select.up.is-open .custom-select-menu{transform:translateY(0) scale(1)}
+/* juda past ekranlar uchun zaxira: ichki skroll */
+.custom-select-menu{max-height:min(340px,62vh);overflow-y:auto}
+.custom-option{width:100%;min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:14px;
   padding:0 14px 0 16px;border:0;border-radius:10px;outline:none;color:#111827;background:transparent;cursor:pointer;
-  font-size:20px;font-weight:500;text-align:left;transition:background 150ms ease,color 150ms ease,transform 150ms ease}
+  font-size:15px;font-weight:500;text-align:left;transition:background 150ms ease,color 150ms ease,transform 150ms ease}
 .custom-option + .custom-option{margin-top:2px}
 .custom-option:hover,.custom-option.is-keyboard-active,.custom-option:focus-visible{background:rgba(20,105,255,.075);color:#0b56d7}
 .custom-option:active{transform:scale(.995)}
@@ -110,7 +118,7 @@ input::placeholder{color:#9aa8bd}
   font-size:14px;font-weight:800;opacity:0;transform:scale(.75);transition:opacity 160ms ease,transform 160ms ease}
 .custom-option.is-selected .option-check{opacity:1;transform:scale(1)}
 /* ---- CTA ---- */
-.start-button{position:relative;width:100%;height:82px;margin-top:2px;border:0;border-radius:11px;cursor:pointer;overflow:hidden;
+.start-button{position:relative;width:100%;height:58px;margin-top:6px;border:0;border-radius:11px;cursor:pointer;overflow:hidden;
   color:#fff;background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);
   box-shadow:0 17px 34px rgba(20,105,255,.22),inset 0 1px 0 rgba(255,255,255,.25),inset 0 -1px 0 rgba(4,60,164,.14);
   transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease}
@@ -119,8 +127,8 @@ input::placeholder{color:#9aa8bd}
 .start-button::before{content:"";position:absolute;top:-45%;left:-35%;width:28%;height:190%;transform:rotate(16deg);
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.23),transparent);transition:left 560ms cubic-bezier(.2,.8,.2,1)}
 .start-button:hover::before{left:118%}
-.button-label{font-size:19px;letter-spacing:.18em;font-weight:500}
-.button-arrow{position:absolute;right:22%;top:50%;transform:translateY(-52%);font-size:34px;font-weight:300;transition:transform 180ms ease}
+.button-label{font-size:13.5px;letter-spacing:.16em;font-weight:600}
+.button-arrow{position:absolute;right:20px;top:50%;transform:translateY(-52%);font-size:22px;font-weight:300;transition:transform 180ms ease}
 .start-button:hover .button-arrow{transform:translate(7px,-52%)}
 .button-loader{display:none;position:absolute;top:50%;right:24px;width:20px;height:20px;margin-top:-10px;border-radius:50%;
   border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin 680ms linear infinite}
@@ -139,32 +147,32 @@ input::placeholder{color:#9aa8bd}
 /* ---- mobil ---- */
 @media (max-width:820px){
   body{overflow:auto}
-  .page-shell{min-height:100svh;padding:28px 18px}
+  .page-shell{min-height:100svh;padding:24px 16px}
   .background-word{font-size:72vw;opacity:.48}
-  .glass-card{width:min(620px,100%);padding:48px 28px 36px;border-radius:18px}
-  h1{font-size:clamp(38px,10vw,54px);margin-bottom:36px}
-  .input-wrap{height:68px}
-  input{font-size:23px}
-  .code-wrap input{font-size:29px}
-  .custom-select-trigger{height:68px;font-size:23px}
-  .custom-option{min-height:46px;font-size:18px}
-  .start-button{height:74px}
-  .button-label{font-size:16px}
-  .button-arrow{right:13%}
+  .glass-card{width:min(460px,100%);padding:34px 24px 26px;border-radius:16px}
+  h1{font-size:clamp(25px,6.5vw,30px);margin-bottom:22px}
+  .input-wrap{height:52px}
+  input{font-size:16px}
+  .code-wrap input{font-size:19px}
+  .custom-select-trigger{height:52px;font-size:16px}
+  .custom-option{min-height:38px;font-size:14.5px}
+  .start-button{height:54px}
+  .button-label{font-size:12.5px}
+  .button-arrow{right:16px;font-size:20px}
   .ambient{width:620px;height:620px}
 }
 @media (max-width:520px){
-  .glass-card{padding:38px 18px 26px}
-  label{font-size:12px}
-  .input-wrap{height:62px;border-radius:12px}
-  input{font-size:20px}
-  .code-wrap input{font-size:24px;letter-spacing:.20em}
-  .custom-select-trigger{height:62px;border-radius:12px;font-size:20px}
-  .custom-select-menu{border-radius:12px;padding:6px}
-  .custom-option{min-height:43px;font-size:17px;border-radius:9px}
-  .start-button{height:66px;border-radius:10px}
-  .button-label{font-size:13px;letter-spacing:.14em}
-  .button-arrow{right:7%;font-size:28px}
+  .glass-card{padding:28px 16px 20px}
+  label{font-size:11px}
+  .input-wrap{height:50px;border-radius:11px}
+  input{font-size:15px}
+  .code-wrap input{font-size:18px;letter-spacing:.18em}
+  .custom-select-trigger{height:50px;border-radius:11px;font-size:15px}
+  .custom-select-menu{border-radius:11px;padding:6px}
+  .custom-option{min-height:37px;font-size:14px;border-radius:9px}
+  .start-button{height:52px;border-radius:10px}
+  .button-label{font-size:12px;letter-spacing:.12em}
+  .button-arrow{right:14px;font-size:19px}
 }
 </style>
 </head>
@@ -291,6 +299,10 @@ fullName.addEventListener("input", () => clearInvalid(fullName, nameError));
 
 /* ---- glass dropdown ---- */
 function openClassSelect() {
+  // pastda menyuga joy bormi? bo'lmasa tepaga ochamiz
+  const menu = document.getElementById("classSelectMenu");
+  const below = window.innerHeight - classSelectTrigger.getBoundingClientRect().bottom - 14;
+  classSelect.classList.toggle("up", below < Math.min(menu.scrollHeight + 16, 340));
   classSelect.classList.add("is-open");
   classSelectTrigger.setAttribute("aria-expanded", "true");
 }

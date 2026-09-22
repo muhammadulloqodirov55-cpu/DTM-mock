@@ -166,13 +166,17 @@ body::after{content:"";position:fixed;z-index:0;left:-560px;top:-460px;width:840
              background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.26);
              box-shadow:0 40px 90px rgba(60,5,0,.5),inset 0 1.5px 0 rgba(255,255,255,.28),
                inset 0 -1px 0 rgba(255,255,255,.07)}
-#cheatOv h2{margin:0 0 12px;font-size:34px;letter-spacing:1px}
-#cheatOv p{font-size:15px;line-height:1.6;color:#ffd9d5;margin:0 0 10px}
-#cheatSec{font-size:56px;font-weight:800;font-variant-numeric:tabular-nums}
-#cheatWait{display:none}
-.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;
-      margin:14px auto 0;animation:sp 1s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+#cheatOv h2{margin:0 0 12px;font-size:32px;letter-spacing:1px}
+#cheatOv p{font-size:15px;line-height:1.65;color:#ffd9d5;margin:0 0 22px}
+#cheatOv p b{color:#fff}
+.warnBtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.warnBtns button{border:0;border-radius:12px;padding:14px 24px;font:inherit;font-size:13px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.warnBtns button:hover{transform:translateY(-1px)}
+#warnContinue,#warnNo{background:linear-gradient(180deg,#2d7cff 0%,#1267f4 100%);color:#fff;
+  box-shadow:0 12px 26px rgba(20,105,255,.35),inset 0 1px 0 rgba(255,255,255,.28)}
+#warnFinish,#warnYes{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.45)}
+#warnFinish:hover,#warnYes:hover{background:rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
@@ -251,26 +255,32 @@ body::after{content:"";position:fixed;z-index:0;left:-560px;top:-460px;width:840
     <div class="t">DTM Mock · Nazorat rejimi</div>
     <h2>{{ meta.title }}</h2>
     <p><b>{{ att.student_name }}</b> ({{ att.klass }}) · Variant {{ att.variant|int }}<br><br>
-    Imtihon <b>to'liq ekran</b> rejimida o'tadi. Boshqa oyna/varaqqa o'tish, to'liq ekrandan
-    chiqish — <b>firibgarlik</b> deb baholanadi: imtihon darhol to'xtatiladi va faqat admin
-    ruxsati bilan davom etadi. Javoblaringiz har safar avtomatik saqlanadi.</p>
+    Imtihon <b>to'liq ekran</b> rejimida o'tadi. Boshqa oyna/varaqqa o'tish yoki to'liq
+    ekrandan chiqish — <b>firibgarlik</b> deb qayd etiladi va natijangiz izohida ko'rinadi.
+    Javoblaringiz har safar avtomatik saqlanadi.</p>
     <button id="startBtn">Imtihonni boshlash</button>
   </div>
 </div>
 
 <div id="cheatOv">
   <div class="in">
-    <div id="cheatMain">
-      <h2>SIZ FIRIB QILDINGIZ!</h2>
-      <p>Imtihon muhitidan chiqib ketdingiz. Imtihon <b>to'xtatildi</b>, vaqtingiz pauzaga olindi
-      va bu holat adminga yuborildi.</p>
-      <div id="cheatSec">10</div>
+    <div id="warnMain">
+      <h2>FIRIB QILDINGIZ!</h2>
+      <p>Imtihon vaqtida <b>to'liq ekran</b> rejimidan chiqmang.
+      Aks holda keyingi safar <b>imtihondan chetlashtirilasiz</b>.</p>
+      <div class="warnBtns">
+        <button id="warnContinue" type="button">Tushunarli — davom etish</button>
+        <button id="warnFinish" type="button">Imtihonni yakunlash</button>
+      </div>
     </div>
-    <div id="cheatWait">
-      <h2>Admin ruxsati kutilmoqda…</h2>
-      <p>Admin «Yana imkon berish»ni bossa, imtihon shu joyidan davom etadi —
-      javoblaringiz va qolgan vaqtingiz saqlangan.</p>
-      <div class="spin"></div>
+    <div id="warnConfirm" style="display:none">
+      <h2>Aniq yakunlamoqchimisiz?</h2>
+      <p>«Ha» bosilsa imtihon <b>shu yerda yakunlanadi</b> va natijangiz darhol hisoblanadi.
+      Ortga qaytarib bo'lmaydi.</p>
+      <div class="warnBtns">
+        <button id="warnYes" type="button">Ha, yakunlash</button>
+        <button id="warnNo" type="button">Yo'q, davom etaman</button>
+      </div>
     </div>
   </div>
 </div>
@@ -283,7 +293,6 @@ const SAVE_URL = {{ url_for('exam_save', eid=att.exam_id, aid=att.id)|tojson }};
 const SUBMIT_URL = {{ url_for('exam_submit', eid=att.exam_id, aid=att.id)|tojson }};
 const PDF_URL = {{ url_for('exam_pdf', eid=att.exam_id, aid=att.id)|tojson }};
 const CHEAT_URL = {{ url_for('exam_cheat', eid=att.exam_id, aid=att.id)|tojson }};
-const STATUS_URL = {{ url_for('exam_status', eid=att.exam_id, aid=att.id)|tojson }};
 let remaining = {{ remaining_s }};
 const N_Q = 90;
 let examActive = false, blockedNow = false;
@@ -538,40 +547,36 @@ document.getElementById("startBtn").addEventListener("click", () => {
 function violation(reason) {
   if (!examActive || blockedNow || submitting) return;
   blockedNow = true; examActive = false;
-  // javoblar + bayroqlar bilan birga darhol serverga — vaqt SHU zahoti pauzaga olinadi
+  // buzilish serverga qayd etiladi (javoblar bilan) — imtihon BLOKLANMAYDI,
+  // o'quvchi ogohlantirishni ko'rib o'z joyidan davom etadi
   const payload = JSON.stringify({answers: ans, flags: [...flags], reason});
   let sent = false;
   try { sent = navigator.sendBeacon(CHEAT_URL, new Blob([payload], {type: "application/json"})); } catch (e) {}
   if (!sent) fetch(CHEAT_URL, {method: "POST", headers: {"Content-Type": "application/json"},
                                body: payload, keepalive: true}).catch(() => {});
-  showCheat();
-}
-function showCheat() {
+  document.getElementById("warnMain").style.display = "block";
+  document.getElementById("warnConfirm").style.display = "none";
   document.getElementById("cheatOv").classList.add("show");
-  let sec = 10;
-  const el = document.getElementById("cheatSec");
-  const iv = setInterval(() => {
-    sec -= 1;
-    el.textContent = sec;
-    if (sec <= 0) {
-      clearInterval(iv);
-      document.getElementById("cheatMain").style.display = "none";
-      document.getElementById("cheatWait").style.display = "block";
-      pollResume();
-    }
-  }, 1000);
 }
-function pollResume() {
-  const iv = setInterval(async () => {
-    try {
-      const r = await fetch(STATUS_URL);
-      if (!r.ok) return;
-      const d = await r.json();
-      if (d.submitted) { clearInterval(iv); location.href = {{ url_for('exam_result', eid=att.exam_id, aid=att.id)|tojson }}; return; }
-      if (!d.blocked) { clearInterval(iv); location.reload(); }   // admin ruxsat berdi — shu joydan davom
-    } catch (e) {}
-  }, 4000);
+function resumeExam() {
+  document.getElementById("cheatOv").classList.remove("show");
+  blockedNow = false;
+  try {
+    const p = document.documentElement.requestFullscreen();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+  setTimeout(() => { examActive = true; }, 600);   // fullscreen hodisalari tinchigach
 }
+document.getElementById("warnContinue").addEventListener("click", resumeExam);
+document.getElementById("warnNo").addEventListener("click", resumeExam);
+document.getElementById("warnFinish").addEventListener("click", () => {
+  document.getElementById("warnMain").style.display = "none";
+  document.getElementById("warnConfirm").style.display = "block";
+});
+document.getElementById("warnYes").addEventListener("click", () => {
+  blockedNow = false;
+  doSubmit();
+});
 document.addEventListener("visibilitychange", () => { if (document.hidden) violation("boshqa oynaga o'tdi"); });
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) violation("to'liq ekrandan chiqdi"); });
 window.addEventListener("blur", () => {

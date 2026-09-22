@@ -21,8 +21,6 @@
     <h2 style="margin:0">Holat: <span id="specStatus">yuklanmoqda…</span></h2>
     <div>
       <span class="muted" id="specCount">0/90</span>
-      <span class="muted" style="margin-left:14px">ruxsat: <b id="specRes">{{ att.resumes_used or 0 }}</b>/{{ max_resumes }}</span>
-      <button class="btn" id="specResume" style="display:none;margin-left:12px">Yana imkon berish</button>
       <a class="btn sec" id="specResult" style="display:none;margin-left:8px" href="{{ url_for('exam_attempt_admin', eid=meta.id, aid=att.id) }}">Natijani ochish</a>
     </div>
   </div>
@@ -54,11 +52,8 @@
 <script>
 "use strict";
 const DATA_URL = {{ url_for('exam_spectate_data', eid=meta.id, aid=att.id)|tojson }};
-const RESUME_URL = {{ url_for('exam_live_resume', eid=meta.id, aid=att.id)|tojson }};
-const MAXR = {{ max_resumes }};
 const N_Q = 90;
 const statusEl = document.getElementById("specStatus");
-const resumeBtn = document.getElementById("specResume");
 
 function fmtTime(s) {
   const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
@@ -81,20 +76,12 @@ async function poll() {
     cell.classList.toggle("flg", d.flags.includes(q));
   }
   document.getElementById("specCount").textContent = d.n + "/90";
-  document.getElementById("specRes").textContent = d.resumes_used;
   document.getElementById("specTimer").textContent = d.submitted ? "—" : fmtTime(d.remaining_s);
-  resumeBtn.style.display = (d.blocked && d.resumes_used < MAXR) ? "inline-block" : "none";
   document.getElementById("specResult").style.display = d.submitted ? "inline-block" : "none";
   if (d.submitted) setStatus("yakunladi · " + (d.total ?? "?") + " ball", "ok");
-  else if (d.blocked) setStatus("to'xtatilgan · " + d.cheat_count + " marta buzilish", "nokey");
+  else if (d.cheat_count) setStatus("ishlamoqda · ⚑ " + d.cheat_count + " marta buzilish", "nokey");
   else setStatus("ishlamoqda", "flag");
 }
-resumeBtn.addEventListener("click", async () => {
-  resumeBtn.disabled = true;
-  try { await fetch(RESUME_URL, {method: "POST"}); } catch (e) {}
-  resumeBtn.disabled = false;
-  poll();
-});
 poll();
 setInterval(poll, 3000);
 </script>

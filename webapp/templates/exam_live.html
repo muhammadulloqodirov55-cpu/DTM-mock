@@ -22,7 +22,7 @@
     </div>
   </div>
   <table style="margin-top:12px">
-    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Var.</th><th>Jarayon</th><th>Qolgan vaqt</th><th>Holat</th><th>Ruxsat</th><th></th></tr></thead>
+    <thead><tr><th>O'quvchi</th><th>Sinf</th><th>Yo'nalish</th><th>Var.</th><th>Jarayon</th><th>Qolgan vaqt</th><th>Holat</th><th>Nazorat</th><th></th></tr></thead>
     <tbody data-role="rows"><tr><td colspan="9" class="muted">Yuklanmoqda…</td></tr></tbody>
   </table>
 </div>
@@ -30,7 +30,6 @@
 
 <script>
 "use strict";
-const MAXR = {{ max_resumes }};
 const cards = [...document.querySelectorAll(".card[data-eid]")];
 
 function fmtTime(s) {
@@ -62,11 +61,10 @@ async function refresh(card) {
     if (!document.querySelector(".card[data-eid]")) location.reload();
     return;
   }
-  const active = d.rows.filter(r => !r.submitted && !r.blocked).length;
-  const blocked = d.rows.filter(r => r.blocked).length;
+  const active = d.rows.filter(r => !r.submitted).length;
   const done = d.rows.filter(r => r.submitted).length;
   card.querySelector('[data-role="stats"]').textContent =
-    `ishlamoqda: ${active} · to'xtatilgan: ${blocked} · yakunladi: ${done}`;
+    `ishlamoqda: ${active} · yakunladi: ${done}`;
   const tbody = card.querySelector('[data-role="rows"]');
   tbody.textContent = "";
   if (!d.rows.length) {
@@ -86,26 +84,14 @@ async function refresh(card) {
     tr.appendChild(td(r.n + "/90" + (r.flags ? " · ⚑" + r.flags : "")));
     tr.appendChild(td(r.submitted ? "—" : fmtTime(r.remaining_s)));
     if (r.submitted) tr.appendChild(td(tag("yakunladi · " + (r.total ?? "?"), "ok")));
-    else if (r.blocked) tr.appendChild(td(tag("to'xtatilgan · " + r.cheat_count + " marta", "nokey")));
     else tr.appendChild(td(tag("ishlamoqda", "flag")));
-    tr.appendChild(td(r.resumes_used + "/" + MAXR));
+    tr.appendChild(td(r.cheat_count ? tag("⚑ " + r.cheat_count + " marta", "nokey") : "—"));
     const act = document.createElement("td");
     act.style.whiteSpace = "nowrap";
     const watch = document.createElement("a");
     watch.className = "btn sec"; watch.textContent = "Kuzatish";
     watch.href = `/jarayon/${eid}/${r.aid}`;
     act.appendChild(watch);
-    if (r.blocked && r.resumes_used < MAXR) {
-      const btn = document.createElement("button");
-      btn.className = "btn"; btn.style.marginLeft = "6px";
-      btn.textContent = "Yana imkon berish";
-      btn.addEventListener("click", async () => {
-        btn.disabled = true;
-        try { await fetch(`/jarayon/${eid}/${r.aid}/resume`, {method: "POST"}); } catch (e) {}
-        refresh(card);
-      });
-      act.appendChild(btn);
-    }
     tr.appendChild(act);
     tbody.appendChild(tr);
   }

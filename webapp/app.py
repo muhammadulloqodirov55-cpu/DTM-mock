@@ -367,8 +367,6 @@ def exam_take(eid, aid):
     if att["submitted"]:
         return redirect(url_for("exam_result", eid=eid, aid=aid))
     meta = exams.load(eid)
-    if att.get("blocked"):
-        return render_template("exam_blocked.html", att=att, meta=meta)
     if exams.remaining_s(att) <= 0:
         exams.submit(att)
         return redirect(url_for("exam_result", eid=eid, aid=aid))
@@ -421,12 +419,13 @@ def exam_submit(eid, aid):
 
 @app.route("/exam/<eid>/<aid>/cheat", methods=["POST"])
 def exam_cheat(eid, aid):
-    """O'quvchi imtihon muhitidan chiqdi — javob saqlanadi, vaqt pauzaga olinadi."""
+    """O'quvchi imtihon muhitidan chiqdi — buzilish qayd etiladi, javoblar saqlanadi;
+    imtihon bloklanmaydi, o'quvchi ogohlantirishdan keyin davom etadi."""
     _limited("cheat", 20, 60)
     _json_body_cap()
     att = _attempt_or_403(eid, aid)
     data = request.get_json(silent=True) or {}
-    exams.block_attempt(att, data.get("answers"), data.get("flags"))
+    exams.record_violation(att, data.get("answers"), data.get("flags"))
     seclog.info("CHEAT ip=%s exam=%s student=%s marta=%s", _ip(), eid,
                 att.get("student_name", "?"), att.get("cheat_count"))
     return jsonify({"ok": True})
@@ -436,7 +435,7 @@ def exam_cheat(eid, aid):
 def exam_status(eid, aid):
     _limited("status", 40, 60)          # kutish sahifasi 4 soniyada 1 so'raydi (15/daq)
     att = _attempt_or_403(eid, aid)
-    return jsonify({"blocked": bool(att.get("blocked")), "submitted": bool(att.get("submitted")),
+    return jsonify({"submitted": bool(att.get("submitted")),
                     "remaining_s": exams.remaining_s(att)})
 
 
@@ -519,23 +518,19 @@ def exam_manage(eid):
                 flash({"open": "Imtihon ochildi — kodni o'quvchilarga bering.",
                        "closed": "Imtihon yakunlandi: tugallanmagan urinishlar avtomatik topshirildi.",
                        "draft": "Qoralamaga qaytarildi."}[request.form["state"]], "ok")
-            elif action == "resume":
-                att = exams.resume_attempt(eid, request.form["aid"])
-                flash(f"{att.get('student_name','')} davom ettirishi mumkin — vaqti pauzadan chiqarildi.", "ok")
             elif action == "delete_attempt":
                 exams.delete_attempt(eid, request.form["aid"])
                 flash("Urinish o'chirildi.", "ok")
             elif action == "delete_exam":
                 exams.delete(eid)
-                flash("Imtihon o'chirildi.", "ok")
+                flash("Imtihon ro'yxatdan o'chirildi (zaxira nusxasi serverdagi data/trash ichida qoldi).", "ok")
                 return redirect(url_for("exams_page"))
         except (ExamError, KeyError_) as e:
             flash(str(e), "err")
         except KeyError:
             flash("Noto'g'ri so'rov.", "err")
         return redirect(url_for("exam_manage", eid=eid))
-    return render_template("exam_manage.html", meta=meta, attempts=exams.attempts(eid),
-                           max_resumes=S.get_admin()["max_resumes"])
+    return render_template("exam_manage.html", meta=meta, attempts=exams.attempts(eid))
 
 
 @app.route("/exams/<eid>/javoblar", methods=["GET", "POST"])
@@ -571,8 +566,8 @@ def _attempt_row(att: dict) -> dict:
         "aid": att["id"], "name": att.get("student_name", ""), "klass": att.get("klass", ""),
         "direction": att.get("direction_name", ""), "variant": int(att.get("variant", "0") or 0),
         "n": len(att.get("answers", {})), "flags": len(att.get("flags", [])),
-        "blocked": bool(att.get("blocked")), "submitted": bool(att.get("submitted")),
-        "cheat_count": att.get("cheat_count", 0), "resumes_used": att.get("resumes_used", 0),
+        "submitted": bool(att.get("submitted")),
+        "cheat_count": att.get("cheat_count", 0),
         "remaining_s": exams.remaining_s(att), "started_at": att.get("started_at", ""),
         "total": (att.get("report") or {}).get("total_points") if att.get("submitted") else None,
         "percent": (att.get("report") or {}).get("percent") if att.get("submitted") else None,
@@ -582,8 +577,7 @@ def _attempt_row(att: dict) -> dict:
 @app.route("/jarayon")
 def exam_live():
     items = [m for m in exams.list() if m["state"] == "open"]
-    return render_template("exam_live.html", items=items,
-                           max_resumes=S.get_admin()["max_resumes"])
+    return render_template("exam_live.html", items=items)
 
 
 @app.route("/jarayon/<eid>/data")
@@ -592,18 +586,9 @@ def exam_live_data(eid):
     if not meta or meta["state"] != "open":
         return jsonify({"ok": False, "closed": True})
     rows = [_attempt_row(a) for a in exams.attempts(eid)]
-    # tartib: to'xtatilganlar tepada, keyin ishlayotganlar, oxirida yakunlaganlar
-    rows.sort(key=lambda r: (0 if r["blocked"] else (1 if not r["submitted"] else 2), r["name"].lower()))
+    # tartib: ishlayotganlar tepada, yakunlaganlar pastda
+    rows.sort(key=lambda r: (1 if r["submitted"] else 0, r["name"].lower()))
     return jsonify({"ok": True, "rows": rows})
-
-
-@app.route("/jarayon/<eid>/<aid>/resume", methods=["POST"])
-def exam_live_resume(eid, aid):
-    try:
-        att = exams.resume_attempt(eid, aid)
-    except ExamError as e:
-        return jsonify({"ok": False, "error": str(e)}), 409
-    return jsonify({"ok": True, "resumes_used": att.get("resumes_used", 0)})
 
 
 @app.route("/jarayon/<eid>/<aid>")
@@ -614,8 +599,7 @@ def exam_spectate(eid, aid):
     meta = exams.load(eid)
     subjects = meta["directions"].get(att.get("direction", ""), {}).get("subjects")
     return render_template("exam_spectate.html", att=att, meta=meta,
-                           blocks=L.subject_blocks(subjects),
-                           max_resumes=S.get_admin()["max_resumes"])
+                           blocks=L.subject_blocks(subjects))
 
 
 @app.route("/jarayon/<eid>/<aid>/data")
@@ -624,10 +608,9 @@ def exam_spectate_data(eid, aid):
     if not att:
         abort(404)
     return jsonify({"answers": att.get("answers", {}), "flags": att.get("flags", []),
-                    "blocked": bool(att.get("blocked")), "submitted": bool(att.get("submitted")),
+                    "submitted": bool(att.get("submitted")),
                     "remaining_s": exams.remaining_s(att),
                     "cheat_count": att.get("cheat_count", 0),
-                    "resumes_used": att.get("resumes_used", 0),
                     "n": len(att.get("answers", {})),
                     "total": (att.get("report") or {}).get("total_points") if att.get("submitted") else None})
 
@@ -650,8 +633,7 @@ def archive_page():
 def admin_settings():
     if request.method == "POST":
         S.set_admin({"archive_paused": request.form.get("archive_paused") == "1",
-                     "default_duration": request.form.get("default_duration", 180),
-                     "max_resumes": request.form.get("max_resumes", 2)})
+                     "default_duration": request.form.get("default_duration", 180)})
         flash("Sozlamalar saqlandi.", "ok")
         return redirect(url_for("admin_settings"))
     return render_template("settings.html", s=S.get_admin())
